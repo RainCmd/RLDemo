@@ -1,0 +1,34 @@
+
+namespace GameConfig
+    space native integer ConfigMagicNode_GetConfigCount()
+    space native integer, string, integer, integer, real, real, MagicNodeType, integer, integer, integer, string, string ConfigMagicNode_GetConfig(integer)
+
+    public enum MagicNodeType
+        Alter
+        Missile
+
+    public struct MagicNodeConfig
+        integer id
+        string name
+        integer icon
+        integer entityConfigId
+        real cd 
+        real cost
+        MagicNodeType nodeType 
+        integer multiple
+        integer sequence
+        integer number
+        string desc
+        string logic
+
+    public MagicNodeConfig[] magicNodeConfigs
+    public MagicNodeConfig GetMagicNodeConfig(integer id)
+        for var i, var length = 0, magicNodeConfigs.GetLength(); i < length; i++
+            if magicNodeConfigs[i].id == id
+                return magicNodeConfigs[i]
+        exit $"未找到 id = {id} 的MagicNode配置"
+    public LoadMagicNodeConfig()
+        var count = ConfigMagicNode_GetConfigCount()
+        magicNodeConfigs = MagicNodeConfig[count]
+        for var i = 0; i < count; i++
+            magicNodeConfigs[i] = MagicNodeConfig(ConfigMagicNode_GetConfig(i))

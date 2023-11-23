@@ -1,0 +1,49 @@
+
+
+internal native OnUpdateBuff(integer id, integer icon, integer number, real startTime, real endTime)
+internal native OnRemoveBuff(integer id)
+
+public Buff[], integer Add(Buff[] values, integer count, Buff value)
+    if values.GetLength() == count
+        var newValues = Buff[count * 2]
+        for var i = 0; i < count; i++
+            newValues[i] = values[i]
+        values = newValues
+    values[count++] = value
+    return values, count
+
+public Buff[], integer RemoveSwap(Buff[] values, integer count, Buff value)
+    for var i = 0; i < count; i++
+        if values[i] == value
+            values[i] = values[--count]
+            break
+    return values, count
+
+public Buff[], integer Remove(Buff[] values, integer count, Buff value)
+    for var i = 0; i < count; i++
+        if values[i] == value
+            return RemoveAt(values, count, i)
+    return values, count
+
+public Buff[], integer RemoveAt(Buff[] values, integer count, integer index)
+    while index++ < count
+        values[index - 1] = values[index]
+    return values, count - 1
+
+public class Buff
+    public integer configId
+    public Unit owner
+    public Unit source
+    public integer icon
+    public integer number
+    public real startTime
+    public real endTime
+    public Buff(integer configId, Unit source)
+        this.configId = configId
+        this.source = source
+        //todo 初始化buff
+        
+    public Update()
+        OnUpdateBuff(GetHandleID(), icon, number, startTime, endTime)
+    public Remove()
+        OnRemoveBuff(GetHandleID())

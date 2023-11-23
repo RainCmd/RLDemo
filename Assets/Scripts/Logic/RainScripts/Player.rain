@@ -1,0 +1,38 @@
+
+internal native OnPlayerBagMagicNodeChanged(integer player, integer nodeID, bool addition)
+internal native OnPlayerWandMagicNodeChanged(integer player, integer wand, integer nodeID, integer slot)
+internal native OnPlayerWandCDUpdate(integer player, integer wand, real startTime, real endTime)
+
+public Player[] players
+
+public struct Wand 
+    real cdStartTime
+    real cdEndTime
+    MagicNode[] magicNodes 
+    integer magicNodeCount
+
+public class Player
+    public integer id
+    public integer ctrlId
+    public string name
+    public Unit hero
+    public MagicNode[] bagMagicNodes = MagicNode[4]
+    public integer bagMagicNodeCount = 0
+    public Wand[] wands = Wand[3]
+    public Player(integer id, integer ctrlId, string name)
+        this.id = id
+        this.ctrlId = ctrlId
+        this.name = name
+        for var i = 0; i < wands.GetLength(); i++
+            wands[i] = Wand(0, 0, MagicNode[4], 0)
+    public PickMagicNode(MagicNode node)
+    public DropMagicNode(integer nodeID)
+    public EquipMagicNode(integer nodeID, integer wand, integer slot)
+
+    public OnRocker(real dir, real dis)
+    public OnFire(real dir)
+    public OnStopFire()
+    public OnSwitchWeapon(integer weapon)
+    public OnPick(integer trg)
+    public OnDrop(integer trg)
+    public OnEquip(integer trg, integer weapon, integer slot)

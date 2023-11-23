@@ -1,0 +1,22 @@
+namespace GameConfig
+    space native integer ConfigEntity_GetConfigCount()
+    space native integer, string ConfigEntity_GetConfig(integer)
+
+    public struct EntityConfig 
+        integer id
+        string resource
+
+    public EntityConfig[] entityConfigs
+
+    public EntityConfig GetEntityConfig(integer id)
+        for var i, var length = 0, entityConfigs.GetLength(); i < length; i++
+            var cfg = entityConfigs[i]
+            if cfg.id == id
+                return cfg
+        exit $"实体配置 id = {id} 未找到"
+
+    public LoadEntityConfig()
+        var count = ConfigEntity_GetConfigCount()
+        entityConfigs = EntityConfig[count]
+        for var i = 0; i < count; i++
+            entityConfigs[i] = EntityConfig(ConfigEntity_GetConfig(i))

@@ -1,0 +1,138 @@
+
+import kernel.Math
+import GameConfig
+
+public Area worldRoot = GetArea(null, real2(0, 0), WORLD_SIZE, true)
+public const real WORLD_SIZE = 1024
+public const real LOWER_LIMIT_AREA_SIZE = 1
+public const integer LOWER_LIMIT_AREA_ENTITY_COUNT = 2
+public const integer UPPER_LIMIT_AREA_ENTITY_COUNT = 4
+
+public delegate OnSelectEntity(GameEntity)
+public class Area
+    public Area parent
+    public real2 position
+    public real size
+    public bool leaf
+    public integer count
+    // 1 │ 0
+    //───┼───
+    // 2 │ 3
+    public Area[] subAreas = Area[4]
+    public GameEntity[] entities = GameEntity[4]
+    public bool Contains(real2 position)
+        if parent == null
+            return true
+        return position.x > this.position.x - size && position.x <= this.position.x + size && position.y > this.position.y - size && position.y <= this.position.y + size
+    private bool Overlaps(real2 position, real radius)
+        position -= this.position
+        if Abs(position.x) < size + radius && Abs(position.y) < size + radius
+            if Abs(position.x) > size && Abs(position.y) > size
+                position -= real2(Sign(position.x), Sign(position.y)) * size
+                return position.SqrMagnitude() < radius * radius
+            return true
+        return false
+
+    private Area GetSubArea(real2 position)
+        if position.x > this.position.x
+            if position.y > this.position.y
+                return subAreas[0]
+            return subAreas[3]
+        elseif position.y > this.position.y
+            return subAreas[1]
+        return subAreas[2]
+
+    private Split()
+        var subSize = size * .5
+        subAreas[0] = GetArea(this, real2(subSize, subSize) + position, subSize, true)
+        subAreas[1] = GetArea(this, real2(-subSize, subSize) + position, subSize, true)
+        subAreas[2] = GetArea(this, real2(-subSize, -subSize) + position, subSize, true)
+        subAreas[3] = GetArea(this, real2(subSize, -subSize) + position, subSize, true)
+        for var i = 0; i < count; i++
+            var e = entities[i]
+            GetSubArea(e.position.xy).Add(e)
+        leaf = false
+    private Gather()
+        count = 0
+        for var areaIdx, var subAreaCnt = 0, subAreas.GetLength(); areaIdx < subAreaCnt; areaIdx++
+            var area = subAreas[areaIdx]
+            for var i, var cnt = 0, area.count; i < cnt; i++
+                entities[count++] = area.entities[i]
+            Recycle(area)
+            subAreas[areaIdx] = null
+        leaf = true
+
+    public Add(GameEntity value)
+        if leaf
+            if size > LOWER_LIMIT_AREA_SIZE && count >= UPPER_LIMIT_AREA_ENTITY_COUNT
+                Split()
+            else
+                entities, count = Add(entities, count, value)
+                value.area = this
+                return
+        GetSubArea(value.position.xy)->Add(value)
+        count++
+
+    public Remove(GameEntity value)
+        if leaf
+            entities, count = RemoveSwap(entities, count, value)
+        else
+            var area = GetSubArea(value.position.xy)
+            var cnt = area.count
+            area.Remove(value)
+            count -= cnt - area.count
+            if count < LOWER_LIMIT_AREA_ENTITY_COUNT
+                Gather()
+    public SelectRange(real2 position, real radius, OnSelectEntity onSelect)
+        if Overlaps(position, radius)
+            if leaf
+                var sqrRadius = radius * radius
+                for var i = 0; i < count; i++
+                    var e = entities[i]
+                    var d = e.position.xy - position
+                    if d.SqrMagnitude() < sqrRadius
+                        onSelect(e)
+            else
+                for var i, var cnt = 0, subAreas.GetLength(); i < cnt; i++
+                    subAreas[i]->SelectRange(position, radius, onSelect)
+    public SelectAll(OnSelectEntity onSelect)
+        if leaf
+            for var i = 0; i < count; i++
+                onSelect(entities[i])
+        else
+            for var i, var cnt = 0, subAreas.GetLength(); i < cnt; i++
+                subAreas[i]->SelectAll(onSelect)
+    public Move(GameEntity value, real2 position)
+        if Contains(position)
+            parent?->Move(value, position)
+        else
+            Remove(value)
+            value.position.xy = position
+            Add(value)
+
+public Area[] areaPool = Area[16]
+public integer areaPoolCount = 0
+public Area GetArea(Area parent, real2 position, real size, bool leaf)
+    var result = areaPoolCount > 0 ? areaPool[--areaPoolCount] : Area()
+    result.parent = parent
+    result.position = position
+    result.size = size
+    result.leaf = leaf
+    result.count = 0
+    return result
+public Recycle(Area area)
+    if areaPool.GetLength() == areaPoolCount
+        var nap = Area[areaPoolCount * 2]
+        for var i = 0; i < areaPoolCount; i++
+            nap[i] = areaPool[i]
+        areaPool = nap
+    areaPool[areaPoolCount] = area
+
+public CreateWorld()
+        for var i, var playerCnt = 0, players.GetLength(); i < playerCnt; i++
+            //todo 创建玩家角色
+
+public StartWorld()
+    while
+        wait
+

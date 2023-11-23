@@ -1,0 +1,59 @@
+import kernel.Math
+
+internal native OnUpdateEntity(integer id, integer resource, string anim, real3 forward, real3 position)
+internal native OnRemoveEntity(integer id, bool immediately)
+
+public GameEntity[], integer Add(GameEntity[] values, integer count, GameEntity value)
+    if values.GetLength() == count
+        var newValues = GameEntity[count * 2]
+        for var i = 0; i < count; i++
+            newValues[i] = values[i]
+        values = newValues
+    values[count++] = value
+    return values, count
+
+public GameEntity[], integer RemoveSwap(GameEntity[] values, integer count, GameEntity value)
+    for var i = 0; i < count; i++
+        if values[i] == value
+            values[i] = values[--count]
+            break
+    return values, count
+
+public GameEntity[], integer Remove(GameEntity[] values, integer count, GameEntity value)
+    for var i = 0; i < count; i++
+        if values[i] == value
+            return RemoveAt(values, count, i)
+    return values, count
+
+public GameEntity[], integer RemoveAt(GameEntity[] values, integer count, integer index)
+    while index++ < count
+        values[index - 1] = values[index]
+    return values, count - 1
+
+public class GameEntity
+    public Area area
+    public string resource
+    public string anim
+    public real3 forward
+    public real3 position
+    protected Init(integer configId, string anim, real3 forward, real3 position)
+        resource = GameConfig.GetEntityConfig(configId).resource
+        this.anim = anim
+        this.forward = forward
+        this.position = position
+        worldRoot->Add(this)
+        this->OnUpdate()
+    protected Remove(bool immediately)
+        OnRemoveEntity(GetHandleID(), immediately)
+        worldRoot.Remove(this)
+    public Move(real3 forward, real3 position)
+        if position != this.position
+            area->Move(this, position.xy)
+        this.forward = forward
+        this.position = position
+        this->OnUpdate()
+    public ShowAnim(string anim)
+        this.anim = anim
+        this->OnUpdate()
+    private OnUpdate()
+        OnUpdateEntity(this.GetHandleID(), resource, anim, forward, position)

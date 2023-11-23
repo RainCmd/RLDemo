@@ -1,0 +1,77 @@
+import GameConfig
+
+internal native OnUpdateMagicNode(integer id, integer nodeID, integer number)
+internal native OnRemvoeMagicNode(integer id)
+
+public MagicNode[], integer Add(MagicNode[] values, integer count, MagicNode value)
+    if values.GetLength() == count
+        var newValues = MagicNode[count * 2]
+        for var i = 0; i < count; i++
+            newValues[i] = values[i]
+        values = newValues
+    values[count++] = value
+    return values, count
+
+public MagicNode[], integer RemoveSwap(MagicNode[] values, integer count, MagicNode value)
+    for var i = 0; i < count; i++
+        if values[i] == value
+            values[i] = values[--count]
+            break
+    return values, count
+
+public MagicNode[], integer Remove(MagicNode[] values, integer count, MagicNode value)
+    for var i = 0; i < count; i++
+        if values[i] == value
+            return RemoveAt(values, count, i)
+    return values, count
+
+public MagicNode[], integer RemoveAt(MagicNode[] values, integer count, integer index)
+    while index++ < count
+        values[index - 1] = values[index]
+    return values, count - 1
+
+public class MagicNodeEntity GameEntity
+    public MagicNode node
+
+public class MagicNode
+    public MagicNodeEntity nodeEntity
+    public MagicNodeConfig config
+    public integer number
+    public Init(integer configId, real3 position)
+        nodeEntity = null
+        config = GetMagicNodeConfig(configId)
+        number = cofnig.number
+        OnDrop(position)
+    public Remove()
+        OnRemvoeMagicNode(GetHandleID())
+        OnPick()
+        magicNodePool, magicNodePoolCount = Add(magicNodePool, magicNodePoolCount, this)
+    public OnDrop(real3 position)
+        if nodeEntity == null
+            nodeEntity = magicNodeEntityPoolCount > 0 ? magicNodeEntityPool[--magicNodeEntityPoolCount] : MagicNodeEntity()
+            nodeEntity.node = this
+            nodeEntity.Init(config.entityConfigId, "stand", real3(1, 0, 0), position)
+        else
+            nodeEntity.Move(position)
+    public OnPick()
+        if nodeEntity != null
+            nodeEntity.ShowAnim("kill")
+            nodeEntity.Remove(false)
+            nodeEntity.node = null
+            if magicNodeEntityPoolCount == magicNodeEntityPool.GetLength()
+                var pool = MagicNodeEntity[magicNodeEntityPoolCount * 2]
+                for var i = 0; i < magicNodeEntityPoolCount; i++
+                    pool[i] = magicNodeEntityPool[i]
+                magicNodeEntityPool = pool
+            magicNodeEntityPool[magicNodeEntityPoolCount++] = nodeEntity
+            nodeEntity = null
+
+public MagicNode CreateMagicNode(integer configId, real3 position)
+    var node = magicNodeEntityPoolCount > 0 ? magicNodeEntityPool[--magicNodeEntityPoolCount] : MagicNode()
+    node.Init(configId, position)
+    return node
+
+public MagicNodeEntity[] magicNodeEntityPool = MagicNodeEntity[4]
+public integer magicNodeEntityPoolCount = 0
+public MagicNode magicNodePool = MagicNode[4]
+public integer magicNodePoolCount = 0

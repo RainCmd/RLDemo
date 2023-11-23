@@ -1,0 +1,86 @@
+import GameConfig
+internal native Debug(string)
+internal native ShowFloatText(real3 position, real3 color, string value)
+internal native ShowEffect(real3 position, real3 forward, string resource)
+namespace InitGame
+    
+    space integer[] cidx2pid
+
+    public OperRocker(integer cidx, real dir, real dis)
+        players[cidx2pid[cidx]].OnRocker(dir, dis)
+
+    public OperFire(integer cidx, real dir)
+        players[cidx2pid[cidx]].OnFire(dir)
+
+    public OperStopFire(integer cidx)
+        players[cidx2pid[cidx]].OnStopFire()
+
+    public OperSwitchWeapon(integer cidx, integer weapon)
+        players[cidx2pid[cidx]].OnSwitchWeapon(weapon)
+
+    public OperPick(integer cidx, integer trg)
+        players[cidx2pid[cidx]].OnPick(trg)
+
+    public OperDrop(integer cidx, integer trg)
+        players[cidx2pid[cidx]].OnDrop(trg)
+
+    public OperEquip(integer cidx, integer trg, integer weapon, integer slot)
+        players[cidx2pid[cidx]].OnEquip(trg, weapon, slot)
+    
+    space native integer GetControlCount()
+    space native integer, string GetControl(integer idx)
+    //逻辑世界初始化
+    public GameMain(integer seed)
+        kernel.System.SetRandomSeed(seed)
+        var cnt = GetControlCount()
+        cidx2pid = integer[cnt]
+        players = Player[cnt]
+        for var i = 0; i < cnt; i++
+            var cidx, var name = GetControl(i)
+            cidx2pid[cidx] = i
+            players[i] = Player(i, cidx, name)
+
+        LoadMagicNodeConfig()
+        LoadEntityConfig()
+        LoadUnitConfig()
+
+        CreateWorld()
+
+    //逻辑更新开始前
+    public GameEntry()
+        StartWorld()
+
+    public native OnLoadGameEntity(integer id, string resource, string anim, real3 forward, real3 position)
+    public native OnLoadGameUnit(integer id, integer player, UnitType unitType, real hp, real maxHP,real mp, real maxMP)
+    public native OnLoadBuff(integer unitId, integer id, integer icon, integer number, real startTime, real endTime)
+    public native OnLoadMagicNode(integer id, integer configId, integer number)
+    space OnLoadEntity(GameEntity e)
+        OnLoadGameEntity(e.GetHandleID(), e.resource, e.anim, e.forward, e.position)
+        if e is Unit u
+            OnLoadGameUnit(u.GetHandleID(), u.player, u.unitType, u.hp, u.maxHP, u.mp, u.maxMP)
+            for var i = 0; i < u.buffCount; i++
+                var b = u.buffs[i]
+                OnLoadBuff(b.GetHandleID(), b.icon, b.number, b.startTime, b.endTime)
+
+        
+    public LoadGameData()
+        //todo 遍历实体，单位，buff和节点 然后调用上面几个OnLoad函数
+        worldRoot.SelectAll(OnLoadEntity)
+
+    public integer Init_GetPlayerCount()
+        return players.GetLength()
+    public integer, string Init_GetPlayer(integer id)
+        return players[id].ctrlId, players[id].name
+    public integer Init_GetPlayerBuffCount(integer playerId)
+        return players[playerId].hero.buffs.count
+    public integer Init_GetPlayerBuff(integer playerId, integer index)
+        return players[playerId].hero.buffs.values[index].GetHandleID()
+    public integer Init_GetPlayerBagMagicNodeCount(integer playerId)
+        return players[playerId].bag.count
+    public integer Init_GetPlayerBagMagicNode(integer playerId, integer index)
+        return players[playerId].bag.values[index].GetHandleID()
+    public integer Init_GetPlayerWandMagicNodeCount(integer playerId, integer wand)
+        return players[playerId].wands[wand].nodes.count
+    public integer Init_GetPlayerWandMagicNode(integer playerId, integer wand, integer index)
+        return players[playerId].wands[wand].nodes.values[index].GetHandleID()
+

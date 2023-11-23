@@ -1,0 +1,30 @@
+namespace GameConfig
+    space native integer ConfigUnit_GetConfigCount()
+    space native integer, string, integer, UnitType, real, real, real ConfigUnit_GetConfig(integer index)
+    public enum UnitType
+        Player
+        Npc 
+        NpcNoMana
+
+    public struct UnitConfig
+        integer id
+        string name
+        integer entityConfigId
+        UnitType unitType 
+        real hp
+        real mp
+        real speed
+
+    public UnitConfig[] unitConfigs
+    public GetUnitConfig(integer configId)
+        for var i, var count = 0, unitConfigs.GetLength(); i < count; i++
+            if unitConfigs[i].id == configId
+                return unitConfigs[i]
+        exit $"实体配置 id = {configId} 未找到"
+
+    public LoadUnitConfig()
+        var count = ConfigUnit_GetConfigCount()
+        unitConfigs = UnitConfig[count]
+        for var i = 0; i < count; i++
+            unitConfigs[i] = UnitConfig(ConfigUnit_GetConfig(i))
+        

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9ea0e9edb665384fa3890d5fb70ec73, type: 3}
+  m_Name: Splats
+  m_EditorClassIdentifier: 
+  _list:
+  - splat: {fileID: 2800000, guid: d02c0845ec8697e4e918dc32cfefbf48, type: 3}
+    extend: 1
+    weight: 3
+    cohesion: 0.75
+  - splat: {fileID: 2800000, guid: 6fcb3b718f98ac047b1ea52ed203a0ec, type: 3}
+    extend: 1
+    weight: 7
+    cohesion: 0.85
