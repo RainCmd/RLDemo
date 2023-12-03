@@ -10,8 +10,7 @@ public Player[] players
 public struct Wand 
     real cdStartTime
     real cdEndTime
-    MagicNode[] magicNodes 
-    integer magicNodeCount
+    MagicNode[] magicNodes
 
 public class Player
     public integer id
@@ -31,17 +30,34 @@ public class Player
         this.ctrlId = ctrlId
         this.name = name
         for var i = 0; i < wands.GetLength(); i++
-            wands[i] = Wand(0, 0, MagicNode[4], 0)
+            wands[i] = Wand(0, 0, MagicNode[WAND_SLOT_SIZE])
     public PickMagicNode(MagicNode node)
         if node.nodeEntity != null
             if (node.nodeEntity.position - hero.position).xz.SqrMagnitude() < PICK_RANGE * PICK_RANGE
                 node.OnPick()
                 bagMagicNodes, bagMagicNodeCount = Add(bagMagicNodes, bagMagicNodeCount, node)
                 OnPlayerBagMagicNodeChanged(id, node.GetHandleID(), true)
-    private MagicNode DropMagicNode(integer nodeID, bool onDrop)
+    private MagicNode RemoveBagMagicNode(integer id)
+        for var i, var c = 0, bagMagicNodeCount; i < c; i++
+            var node = bagMagicNodes[i]
+            if node.GetHandleID() == id
+                bagMagicNodes, bagMagicNodeCount = Remove(bagMagicNodes, bagMagicNodeCount, node)
+                OnPlayerBagMagicNodeChanged(id, id, false)
+                return node
+        return null
+    private MagicNode RemoveWandMagicNode(integer id)
+        for var weapon, var c = 0, wands.GetLength(); weapon < c; weapon++
+            var wand = wands[weapon]
+            for var i, var c = 0, wand.magicNodes.GetLength(); i < c; i++
+                var node = wand.magicNodes[i]
+                if node?.GetHandleID() == id
+                    wand.magicNodes[i] = null
+                    OnPlayerWandMagicNodeChanged(id, weapon, 0, i)
+                    return node
+        return null
     private OnUpdatePickListCallback(GameEntity e)
         if e is MagicNodeEntity mne
-            selectPickList, selectPickListCount = Add(selectPickList, selectPickListCount, mne)
+            selectPickList, selectPickListCount = global Add(selectPickList, selectPickListCount, mne)
     public UpdatePickList()
         selectPickListCount = 0
         worldRoot.SelectRange(hero.position.xz, PICK_RANGE, OnUpdatePickListCallback)
@@ -61,30 +77,60 @@ public class Player
         selectPickList = tmpList
         pickListCount = selectPickListCount
 //region 操作
-    public OnRocker(real dir, real dis)
-    public OnFire(real dir)
+    public OnRocker(real dir, real dis)//dir[-π,π] dis[0,1]
+        //拖动摇杆移动
+    public OnFire(real dir)//dir[-π,π]
+        //开火
     public OnStopFire()
+        //停止开火
     public OnSwitchWeapon(integer weapon)
         currentWand = weapon
-        OnPlayerWandChanged(currentWand)
+        OnPlayerWandChanged(id, currentWand)
         
     public OnPick(integer trg)
+        //捡起地上的装备
         UpdatePickList()
         for var i = 0; i < pickListCount; i++
             if pickList[i].node.GetHandleID() == trg
-                PickMagicNode(pickList[i])
-    public OnDrop(integer trg)
-        DropMagicNode(nodeID, true)
-    public OnEquip(integer trg, integer weapon, integer slot)
-        var node = DropMagicNode(trg, false)
-        if node == null
-            return
-        if weapon >= 0
+                PickMagicNode(pickList[i].node)
+                return
+        //把法杖中装备丢进背包
+        for var weapon, var c = 0, wands.GetLength(); weapon < c; weapon++
             var wand = wands[weapon]
-            wand.magicNodes, wand.magicNodeCount = Insert(wand.magicNodes, wand.magicNodeCount, node, slot)
-            wands[weapon] = wand
+            for var i, var c = 0, wand.magicNodes.GetLength(); i < c; i++
+                if trg == wand.magicNodes
+                    var node = wand.magicNodes[i]
+                    wand.magicNodes[i] = null
+                    OnPlayerWandMagicNodeChanged(id, weapon, 0, i)
+                    bagMagicNodes, bagMagicNodeCount = Add(bagMagicNodes, bagMagicNodeCount, node)
+                    OnPlayerBagMagicNodeChanged(id, node.GetHandleID(), true)
+                    return
+    public OnDrop(integer trg)
+        var node = RemoveBagMagicNode(trg)
+        if node == null
+            node = RemoveWandMagicNode(trg)
+        node?.OnDrop(hero.position)
+    public OnEquip(integer trg, integer weapon, integer slot)
+        if weapon < 0 || weapon >= wands.GetLength() || slot < 0 && slot >= WAND_SLOT_SIZE
+            return
+        var wand = wands[weapon]
+        var src = wand.magicNodes[slot]
+        var node = RemoveBagMagicNode(trg)
+        if node != null
+            if src != null
+                bagMagicNodes, bagMagicNodeCount = Add(bagMagicNodes, bagMagicNodeCount, src)
+                OnPlayerBagMagicNodeChanged(id, src.GetHandleID(), true)
+            wand.magicNodes[slot] = node
             OnPlayerWandMagicNodeChanged(id, weapon, trg, slot)
         else
-            bagMagicNodes, bagMagicNodeCount = Add(bagMagicNodes, bagMagicNodeCount, node)
-            OnPlayerBagMagicNodeChanged(id, node.GetHandleID(), true)
+            for var tweapon, var c = 0, wands.GetLength(); tweapon < c; tweapon++
+                var twand = wands[tweapon]
+                for var i = 0; i < WAND_SLOT_SIZE; i++
+                    node = twand.magicNodes[i]
+                    if node?.GetHandleID() == trg
+                        twand.magicNodes[i] = src
+                        OnPlayerWandMagicNodeChanged(id, tweapon, src?.GetHandleID(), i)
+                        wand.magicNodes[slot] = node
+                        OnPlayerWandMagicNodeChanged(id, weapon, trg, slot)
+                        return
 //endregion

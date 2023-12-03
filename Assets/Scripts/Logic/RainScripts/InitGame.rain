@@ -58,7 +58,7 @@ namespace InitGame
             OnLoadGameUnit(u.GetHandleID(), u.player, u.unitType, u.hp, u.maxHP, u.mp, u.maxMP)
             for var i = 0; i < u.buffCount; i++
                 var b = u.buffs[i]
-                OnLoadBuff(b.GetHandleID(), b.icon, b.number, b.startTime, b.endTime)
+                OnLoadBuff(u.GetHandleID(), b.GetHandleID(), b.icon, b.number, b.startTime, b.endTime)
 
         
     public LoadGameData()
@@ -70,15 +70,15 @@ namespace InitGame
     public integer, string Init_GetPlayer(integer id)
         return players[id].ctrlId, players[id].name
     public integer Init_GetPlayerBuffCount(integer playerId)
-        return players[playerId].hero.buffs.count
+        return players[playerId].hero.buffCount
     public integer Init_GetPlayerBuff(integer playerId, integer index)
-        return players[playerId].hero.buffs.values[index].GetHandleID()
+        return players[playerId].hero.buffs[index].GetHandleID()
     public integer Init_GetPlayerBagMagicNodeCount(integer playerId)
-        return players[playerId].bag.count
+        return players[playerId].bagMagicNodeCount
     public integer Init_GetPlayerBagMagicNode(integer playerId, integer index)
-        return players[playerId].bag.values[index].GetHandleID()
-    public integer Init_GetPlayerWandMagicNodeCount(integer playerId, integer wand)
-        return players[playerId].wands[wand].nodes.count
+        return players[playerId].bagMagicNodes[index].GetHandleID()
+    public integer Init_GetPlayerWandMagicNodeCount()
+        return WAND_SLOT_SIZE
     public integer Init_GetPlayerWandMagicNode(integer playerId, integer wand, integer index)
-        return players[playerId].wands[wand].nodes.values[index].GetHandleID()
+        return players[playerId].wands[wand].magicNodes[index].GetHandleID()
 

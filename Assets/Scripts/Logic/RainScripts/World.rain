@@ -63,7 +63,7 @@ public class Area
             if size > LOWER_LIMIT_AREA_SIZE && count >= UPPER_LIMIT_AREA_ENTITY_COUNT
                 Split()
             else
-                entities, count = Add(entities, count, value)
+                entities, count = global Add(entities, count, value)
                 value.area = this
                 return
         GetSubArea(value.position.xz)->Add(value)

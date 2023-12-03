@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 public class CompileRainScripts
 {
@@ -58,7 +60,7 @@ public class CompileRainScripts
     {
         var files = new List<BuildParameter.ICodeFile>();
         LoadCodeFiles(scriptsPath, files);
-        var sw = new System.Diagnostics.Stopwatch();
+        var sw = new Stopwatch();
         using (var product = RainLanguageAdapter.BuildProduct(new BuildParameter(Config.GameName, true, files, LoadLibrary, RainErrorLevel.LoggerLevel4)))
         {
             sw.Stop();

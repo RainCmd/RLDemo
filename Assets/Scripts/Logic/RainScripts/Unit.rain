@@ -2,7 +2,7 @@ import GameConfig
 
 internal native OnUpdateUnitEntity(integer id, integer player, UnitType unitType, real hp, real maxHP, real mp, real maxMP)
 internal native OnRemoveUnitEntity(integer id)
-integer native OnUnitBuffChanged(integer unitId, integer buffId, bool addition)
+internal native OnUnitBuffChanged(integer unitId, integer buffId, bool addition)
 
 public Unit[], integer Add(Unit[] values, integer count, Unit value)
     if values.GetLength() == count
@@ -48,7 +48,6 @@ public class Unit GameEntity
     public real moveSpeed
     public Buff[] buffs = Buff[4]
     public integer buffCount = 0
-
     public Init(integer configId, integer player, real3 forward, real3 position)
         var config = GetUnitConfig(configId)
         base.Init(config.entityConfigId, "stand", forward, position)
@@ -64,9 +63,9 @@ public class Unit GameEntity
             OnUnitBuffChanged(GetHandleID(), buffs[i].GetHandleID(), false)
         OnRemoveUnitEntity(GetHandleID())
         base.Remove(immediately)
-        unitPool, unitPoolCount = Add(unitPool, unitPoolCount, this)
+        unitPool, unitPoolCount = global Add(unitPool, unitPoolCount, this)
     public Add(Buff buff)
-        buffs, buffCount = Add(buffs, buffCount, buff)
+        buffs, buffCount = global Add(buffs, buffCount, buff)
         buff.Update()
         OnUnitBuffChanged(GetHandleID(), buff.GetHandleID(), true)
     public bool Accumulation(Buff buff)

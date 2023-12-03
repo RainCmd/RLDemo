@@ -73,7 +73,7 @@ public class MagicNode
     public Init(integer configId, real3 position)
         nodeEntity = null
         config = GetMagicNodeConfig(configId)
-        number = cofnig.number
+        number = config.number
         OnDrop(position)
     public Remove()
         OnRemvoeMagicNode(GetHandleID())
@@ -83,7 +83,7 @@ public class MagicNode
         if nodeEntity == null
             nodeEntity = magicNodeEntityPoolCount > 0 ? magicNodeEntityPool[--magicNodeEntityPoolCount] : MagicNodeEntity()
             nodeEntity.node = this
-            nodeEntity.Init(config.entityConfigId, "stand", real3(1, 0, 0), position)
+            nodeEntity.Init(config.entityConfigId, "stand", FORWARD, position)
         else
             nodeEntity.Move(position)
     public OnPick()
@@ -100,11 +100,11 @@ public class MagicNode
             nodeEntity = null
 
 public MagicNode CreateMagicNode(integer configId, real3 position)
-    var node = magicNodeEntityPoolCount > 0 ? magicNodeEntityPool[--magicNodeEntityPoolCount] : MagicNode()
+    var node = magicNodeEntityPoolCount > 0 ? magicNodePool[--magicNodePoolCount] : MagicNode()
     node.Init(configId, position)
     return node
 
 public MagicNodeEntity[] magicNodeEntityPool = MagicNodeEntity[4]
 public integer magicNodeEntityPoolCount = 0
-public MagicNode magicNodePool = MagicNode[4]
+public MagicNode[] magicNodePool = MagicNode[4]
 public integer magicNodePoolCount = 0

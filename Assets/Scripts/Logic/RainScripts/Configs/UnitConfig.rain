@@ -16,7 +16,7 @@ namespace GameConfig
         real speed
 
     public UnitConfig[] unitConfigs
-    public GetUnitConfig(integer configId)
+    public UnitConfig GetUnitConfig(integer configId)
         for var i, var count = 0, unitConfigs.GetLength(); i < count; i++
             if unitConfigs[i].id == configId
                 return unitConfigs[i]
