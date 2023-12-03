@@ -2,6 +2,7 @@ import GameConfig
 
 internal native OnUpdateMagicNode(integer id, integer nodeID, integer number)
 internal native OnRemvoeMagicNode(integer id)
+public delegate bool MatchMagicNode(MagicNode)
 
 public MagicNode[], integer Add(MagicNode[] values, integer count, MagicNode value)
     if values.GetLength() == count
@@ -12,12 +13,29 @@ public MagicNode[], integer Add(MagicNode[] values, integer count, MagicNode val
     values[count++] = value
     return values, count
 
+public MagicNode[], integer Insert(MagicNode[] values, integer count, MagicNode value, integer index)
+    if values.GetLength() == count
+        var newValues = MagicNode[count * 2]
+        for var i = 0; i < count; i++
+            newValues[i] = values[i]
+        values = newValues
+    for var i = count++; i > index; i--
+        values[i] = values[i - 1]
+    values[index] = value
+    return values, count
+
 public MagicNode[], integer RemoveSwap(MagicNode[] values, integer count, MagicNode value)
     for var i = 0; i < count; i++
         if values[i] == value
             values[i] = values[--count]
             break
     return values, count
+
+public integer FindIndex(MagicNode[] values, integer count, MatchMagicNode match)
+    for var i = 0; i < count; i++
+        if match(values[i])
+            return i
+    return -1
 
 public MagicNode[], integer Remove(MagicNode[] values, integer count, MagicNode value)
     for var i = 0; i < count; i++
@@ -29,6 +47,21 @@ public MagicNode[], integer RemoveAt(MagicNode[] values, integer count, integer 
     while index++ < count
         values[index - 1] = values[index]
     return values, count - 1
+
+public MagicNodeEntity[], integer Add(MagicNodeEntity[] values, integer count, MagicNodeEntity value)
+    if values.GetLength() == count
+        var newValues = MagicNodeEntity[count * 2]
+        for var i = 0; i < count; i++
+            newValues[i] = values[i]
+        values = newValues
+    values[count++] = value
+    return values, count
+
+public integer FindIndex(MagicNodeEntity[] values, integer count, MagicNodeEntity value)
+    for var i = 0; i < count; i++
+        if values[i] == value
+            return i
+    return -1
 
 public class MagicNodeEntity GameEntity
     public MagicNode node

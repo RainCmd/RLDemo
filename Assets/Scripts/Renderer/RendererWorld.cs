@@ -29,7 +29,7 @@ public class RendererWorld : IDisposable
             World = world;
             lock (world)
             {
-
+                
                 world.OnEntityChanged += OnEntityChanged;
                 world.OnEntityRemoved += OnEntityRemoved;
                 world.OnUpdateUnitEntity += OnUpdateUnitEntity;

@@ -32,6 +32,9 @@ namespace InitGame
     //逻辑世界初始化
     public GameMain(integer seed)
         kernel.System.SetRandomSeed(seed)
+        LoadMagicNodeConfig()
+        LoadEntityConfig()
+        LoadUnitConfig()
         var cnt = GetControlCount()
         cidx2pid = integer[cnt]
         players = Player[cnt]
@@ -39,12 +42,7 @@ namespace InitGame
             var cidx, var name = GetControl(i)
             cidx2pid[cidx] = i
             players[i] = Player(i, cidx, name)
-
-        LoadMagicNodeConfig()
-        LoadEntityConfig()
-        LoadUnitConfig()
-
-        CreateWorld()
+            players[i].hero = CreateUnit('U_hero', i, real3(0, 0, 1), GetRandomWorldPosition())
 
     //逻辑更新开始前
     public GameEntry()

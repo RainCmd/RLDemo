@@ -69,7 +69,14 @@ public class LogicConfigEditor : EditorWindow
         {
             foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
             {
-                field.SetValue(value, Draw(field.Name, field.GetValue(value), field.FieldType));
+                if (field.FieldType == typeof(long) && field.GetCustomAttribute<ConfigIdAttribute>() != null)
+                {
+                    field.SetValue(value, (long)ConfigIdAttributeEditor.Draw(EditorGUILayout.GetControlRect(), field.Name, (ulong)(long)field.GetValue(value)));
+                }
+                else
+                {
+                    field.SetValue(value, Draw(field.Name, field.GetValue(value), field.FieldType));
+                }
             }
         }
         EditorGUI.indentLevel--;

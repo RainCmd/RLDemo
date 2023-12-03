@@ -1,0 +1,7 @@
+
+public const real WORLD_SIZE = 1024
+public const real LOWER_LIMIT_AREA_SIZE = 1
+public const integer LOWER_LIMIT_AREA_ENTITY_COUNT = 2
+public const integer UPPER_LIMIT_AREA_ENTITY_COUNT = 4
+
+public cosnt real PICK_RANGE = 1

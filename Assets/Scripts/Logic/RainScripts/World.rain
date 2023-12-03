@@ -3,16 +3,12 @@ import kernel.Math
 import GameConfig
 
 public Area worldRoot = GetArea(null, real2(0, 0), WORLD_SIZE, true)
-public const real WORLD_SIZE = 1024
-public const real LOWER_LIMIT_AREA_SIZE = 1
-public const integer LOWER_LIMIT_AREA_ENTITY_COUNT = 2
-public const integer UPPER_LIMIT_AREA_ENTITY_COUNT = 4
 
 public delegate OnSelectEntity(GameEntity)
 public class Area
     public Area parent
     public real2 position
-    public real size
+    public real size    //区域正方形边长的一半
     public bool leaf
     public integer count
     // 1 │ 0
@@ -70,14 +66,14 @@ public class Area
                 entities, count = Add(entities, count, value)
                 value.area = this
                 return
-        GetSubArea(value.position.xy)->Add(value)
+        GetSubArea(value.position.xz)->Add(value)
         count++
 
     public Remove(GameEntity value)
         if leaf
             entities, count = RemoveSwap(entities, count, value)
         else
-            var area = GetSubArea(value.position.xy)
+            var area = GetSubArea(value.position.xz)
             var cnt = area.count
             area.Remove(value)
             count -= cnt - area.count
@@ -89,7 +85,7 @@ public class Area
                 var sqrRadius = radius * radius
                 for var i = 0; i < count; i++
                     var e = entities[i]
-                    var d = e.position.xy - position
+                    var d = e.position.xz - position
                     if d.SqrMagnitude() < sqrRadius
                         onSelect(e)
             else
@@ -107,7 +103,7 @@ public class Area
             parent?->Move(value, position)
         else
             Remove(value)
-            value.position.xy = position
+            value.position.xz = position
             Add(value)
 
 public Area[] areaPool = Area[16]
@@ -128,9 +124,11 @@ public Recycle(Area area)
         areaPool = nap
     areaPool[areaPoolCount] = area
 
-public CreateWorld()
-        for var i, var playerCnt = 0, players.GetLength(); i < playerCnt; i++
-            //todo 创建玩家角色
+public real GetRandomRange(real min, real max)
+    return min + GetRandomReal() * ( max - min)
+public real3 GetRandomWorldPosition()
+    return real3(GetRandomRange(-WORLD_SIZE, WORLD_SIZE), 0, GetRandomRange(-WORLD_SIZE, WORLD_SIZE))
+            
 
 public StartWorld()
     while

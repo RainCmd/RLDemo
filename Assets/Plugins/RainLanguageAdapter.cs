@@ -317,9 +317,6 @@ public struct CallerHelper
         catch
         {
             caller = null;
-#if UNITY_EDITOR
-            throw;
-#endif
         }
     }
     public static CallerHelper Create<T>(string functionName)
@@ -338,8 +335,8 @@ public struct CallerHelper
         for (uint i = 0; i < parameterTypes.Length; i++)
         {
             var methodName = GetParameterFunctionName(parameterTypes[i]);
-            if (string.IsNullOrEmpty(methodName)) caller_parameters[i] = Expression.Call(caller, type_caller.GetMethod(methodName), Expression.Constant(i));
-            else caller_parameters[i] = Expression.Constant(null);
+            if (string.IsNullOrEmpty(methodName)) caller_parameters[i] = Expression.Constant(null);
+            else caller_parameters[i] = Expression.Call(caller, type_caller.GetMethod(methodName), Expression.Constant(i));
         }
         var caller_return_value = instance == null ? Expression.Call(method, caller_parameters) : Expression.Call(Expression.Constant(instance), method, caller_parameters);
         if (returnTypes.Length > 0)
@@ -347,7 +344,7 @@ public struct CallerHelper
             if (returnValueFields == null)
             {
                 var methodName = GetReturnFunctionName(returnTypes[0]);
-                if (string.IsNullOrEmpty(methodName)) return Expression.Call(caller, type_caller.GetMethod(methodName), Expression.Constant(0), caller_return_value);
+                if (!string.IsNullOrEmpty(methodName)) return Expression.Call(caller, type_caller.GetMethod(methodName), Expression.Constant(0u), caller_return_value);
             }
             else if (returnValueFields.Length > 0)
             {
@@ -355,9 +352,9 @@ public struct CallerHelper
                 for (uint i = 0; i < returnValueFields.Length; i++)
                 {
                     var methodName = GetReturnFunctionName(returnTypes[i]);
-                    if (string.IsNullOrEmpty(methodName))
+                    if (!string.IsNullOrEmpty(methodName))
                     {
-                        var field_value = Expression.Field(caller, returnValueFields[i]);
+                        var field_value = Expression.Field(caller_return_value, returnValueFields[i]);
                         var expression = Expression.Call(caller, type_caller.GetMethod(methodName), Expression.Constant(i), field_value);
                         if (result == null) result = expression;
                         else result = Expression.Block(result, expression);
@@ -877,8 +874,12 @@ public unsafe class RainLanguageAdapter
     }
     private struct ExternNativeString
     {
-        public char* value;
-        public uint length;
+        char* value;
+        uint length;
+        public static implicit operator string(ExternNativeString nativeString)
+        {
+            return new string(nativeString.value, 0, (int)nativeString.length);
+        }
     }
     private class NativeString : IDisposable
     {
@@ -1933,14 +1934,14 @@ public unsafe class RainLanguageAdapter
                 {
                     var rainTypeParameters = new RainType[parameterCount];
                     for (int i = 0; i < parameterCount; i++) rainTypeParameters[i] = (RainType)parameters[i];
-                    var onCaller = startupParameter.callerLoader(new RainKernelCopy(kernel), new string(fullName.value), rainTypeParameters);
+                    var onCaller = startupParameter.callerLoader(new RainKernelCopy(kernel), fullName, rainTypeParameters);
                     return (k, c) => onCaller(new RainKernel(k), new RainCaller(c));
                 }, 0x10000, 8, 0x10, 0x100,
                 (kernel, stackFrames, count, msg) =>
                 {
                     var frames = new RainStackFrame[count];
-                    for (int i = 0; i < count; i++) frames[i] = new RainStackFrame(new string(stackFrames[i].libName.value), new string(stackFrames[i].functionName.value), stackFrames[i].address);
-                    startupParameter.onExceptionExit(new RainKernelCopy(kernel), frames, new string(msg.value));
+                    for (int i = 0; i < count; i++) frames[i] = new RainStackFrame(stackFrames[i].libName, stackFrames[i].functionName, stackFrames[i].address);
+                    startupParameter.onExceptionExit(new RainKernelCopy(kernel), frames, msg);
                 },
                 libName =>
                 {
