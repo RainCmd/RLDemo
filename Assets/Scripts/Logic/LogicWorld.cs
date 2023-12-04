@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
-using RainLib = RainLanguageAdapter.RainLibrary;
-using Kernel = RainLanguageAdapter.RainKernel;
-using Function = RainLanguageAdapter.RainFunction;
+using RainLanguage;
+using RainLib = RainLanguage.RainLanguageAdapter.RainLibrary;
+using Kernel = RainLanguage.RainLanguageAdapter.RainKernel;
+using Function = RainLanguage.RainLanguageAdapter.RainFunction;
 
 public struct CtrlInfo
 {

@@ -1,4 +1,5 @@
 ﻿using System;
+using RainLanguage;
 
 public enum MagicNodeType
 {

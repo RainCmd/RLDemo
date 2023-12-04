@@ -5,6 +5,7 @@ using UnityEditor;
 using System.Collections.Generic;
 using System;
 using System.Reflection;
+using RainLanguage;
 
 public class LogicConfigEditor : EditorWindow
 {
