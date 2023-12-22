@@ -92,7 +92,7 @@ public class CompileRainScripts
         {
             sw.Start();
             compileState = "编译中";
-            using (var product = RainLanguageAdapter.BuildProduct(new BuildParameter(Config.GameName, true, files, LoadLibrary, RainErrorLevel.LoggerLevel4)))//不知道为啥，好像偶尔会死循环一样
+            using (var product = RainLanguageAdapter.BuildProduct(new BuildParameter(Config.GameName, true, files, LoadLibrary, RainErrorLevel.LoggerLevel3)))//不知道为啥，好像偶尔会死循环一样
             {
                 compileState = "输出编译信息";
                 sw.Stop();

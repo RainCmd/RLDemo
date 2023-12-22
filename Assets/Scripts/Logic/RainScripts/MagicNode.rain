@@ -1,6 +1,6 @@
 import GameConfig
 
-internal native OnUpdateMagicNode(integer id, integer nodeID, integer number)
+internal native OnUpdateMagicNode(integer nodeId, integer configId, integer number)
 internal native OnRemvoeMagicNode(integer id)
 public delegate bool MatchMagicNode(MagicNode)
 

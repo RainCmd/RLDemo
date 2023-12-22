@@ -20,15 +20,13 @@ public struct CtrlInfo
 public struct LogicEntity
 {
     public long id;
-    public long owner;
     public string resource;
     public string anim;
     public Real3 forward;
     public Real3 position;
-    public LogicEntity(long id, long owner, string resource, string anim, Real3 forward, Real3 position)
+    public LogicEntity(long id, string resource, string anim, Real3 forward, Real3 position)
     {
         this.id = id;
-        this.owner = owner;
         this.resource = resource;
         this.anim = anim;
         this.forward = forward;
@@ -38,14 +36,16 @@ public struct LogicEntity
 public struct LogicUnitEntity
 {
     public long id;
+    public long player;
     public UnitType type;
     public Real hp;
     public Real maxHP;
     public Real mp;
     public Real maxMP;
-    public LogicUnitEntity(long id, UnitType type, Real hp, Real maxHP, Real mp, Real maxMP)
+    public LogicUnitEntity(long id, long player, UnitType type, Real hp, Real maxHP, Real mp, Real maxMP)
     {
         this.id = id;
+        this.player = player;
         this.type = type;
         this.hp = hp;
         this.maxHP = maxHP;
@@ -91,11 +91,11 @@ public struct LogicMagicNodeEntity
 }
 public struct LogicWand
 {
-    public LogicTimeSpan cd;
-    public readonly List<long> nodes;
-    public LogicWand(List<long> nodes)
+    public readonly LogicTimeSpan cd;
+    public readonly long[] nodes;
+    public LogicWand(Real cdStart, Real cdEnd, long[] nodes)
     {
-        cd = new LogicTimeSpan(0, 0);
+        cd = new LogicTimeSpan(cdStart, cdEnd);
         this.nodes = nodes;
     }
 }
@@ -107,15 +107,14 @@ public struct LogicPlayerEntity
     public readonly List<long> buffs;
     public readonly List<long> bag;
     public LogicWand[] wands;
-    public LogicPlayerEntity(long playerId, long ctrlId, string name)
+    public LogicPlayerEntity(long playerId, long ctrlId, string name, long[] bag, long[] buffs)
     {
         this.playerId = playerId;
         this.ctrlId = ctrlId;
         this.name = name;
-        buffs = new List<long>();
-        bag = new List<long>();
+        this.buffs = new List<long>(buffs);
+        this.bag = new List<long>(bag);
         wands = new LogicWand[3];
-        for (int i = 0; i < wands.Length; i++) wands[i] = new LogicWand(new List<long>());
     }
 }
 public struct LogicFloatTextMsg
@@ -153,14 +152,16 @@ public class LogicWorld : IDisposable
     public event Action<long, bool> OnEntityRemoved;
     public event Action<LogicUnitEntity> OnUpdateUnitEntity;
     public event Action<long> OnRemoveUnitEntity;
-    public event Action<LogicBuffEntity> OnUpdateBuffEntity;
-    public event Action<long> OnRemoveBuffEntity;
-    public event Action<LogicMagicNodeEntity> OnUpdateMagicNodeEntity;
-    public event Action<long> OnRemoveMagicNodeEntity;
-    public event Action<long, long, bool> OnPlayerBuffChanged;
+    public event Action<long, long, bool> OnUnitBuffChanged;
+    public event Action<LogicBuffEntity> OnUpdateBuff;
+    public event Action<long> OnRemoveBuff;
+    public event Action<LogicMagicNodeEntity> OnUpdateMagicNode;
+    public event Action<long> OnRemvoeMagicNode;
     public event Action<long, long, bool> OnPlayerBagMagicNodeChanged;
     public event Action<long, long, long, long> OnPlayerWandMagicNodeChanged;
     public event Action<long, long, LogicTimeSpan> OnPlayerWandCDUpdate;
+    public event Action<long, long, bool> OnPlayerMagicNodePickListChanged;
+    public event Action<long, long> OnPlayerWandChanged;
 
     public event Action<LogicFloatTextMsg> OnFloatTextMsg;
     public event Action<LogicEffectMsg> OnEffectMsg;
@@ -232,41 +233,41 @@ public class LogicWorld : IDisposable
         return LogicConfig.units[index];
     }
 
-    private void NativeOnUpdateEntity(long id, long owner, string resource, string anim, Real3 forward, Real3 position)
+    private void NativeOnUpdateEntity(long id, string resource, string anim, Real3 forward, Real3 position)
     {
-        OnEntityChanged?.Invoke(new LogicEntity(id, owner, resource, anim, forward, position));
+        OnEntityChanged?.Invoke(new LogicEntity(id, resource, anim, forward, position));
     }
     private void NativeOnRemoveEntity(long id, bool immediately)
     {
         OnEntityRemoved?.Invoke(id, immediately);
     }
-    private void NativeOnUpdateUnitEntity(long id, long type, Real hp, Real maxHP, Real mp, Real maxMP)
+    private void NativeOnUpdateUnitEntity(long id, long player, long type, Real hp, Real maxHP, Real mp, Real maxMP)
     {
-        OnUpdateUnitEntity?.Invoke(new LogicUnitEntity(id, (UnitType)type, hp, maxHP, mp, maxMP));
+        OnUpdateUnitEntity?.Invoke(new LogicUnitEntity(id, player, (UnitType)type, hp, maxHP, mp, maxMP));
     }
     private void NativeOnRemoveUnitEntity(long id)
     {
         OnRemoveUnitEntity?.Invoke(id);
     }
-    private void NativeOnUpdateBuffEntity(long id, long icon, long number, Real start, Real end)
+    private void NativeOnUnitBuffChanged(long unitId, long buffId, bool addition)
     {
-        OnUpdateBuffEntity?.Invoke(new LogicBuffEntity(id, icon, number, new LogicTimeSpan(start, end)));
+        OnUnitBuffChanged?.Invoke(unitId, buffId, addition);
     }
-    private void NativeOnRemoveBuffEntity(long id)
+    private void NativeOnUpdateBuff(long id, long icon, long number, Real start, Real end)
     {
-        OnRemoveBuffEntity?.Invoke(id);
+        OnUpdateBuff?.Invoke(new LogicBuffEntity(id, icon, number, new LogicTimeSpan(start, end)));
     }
-    private void NativeOnUpdateMagicNodeEntity(long id, long nodeID, long number)
+    private void NativeOnRemoveBuff(long id)
     {
-        OnUpdateMagicNodeEntity?.Invoke(new LogicMagicNodeEntity(id, nodeID, number));
+        OnRemoveBuff?.Invoke(id);
     }
-    private void NativeOnRemvoeMagicNodeEntity(long id)
+    private void NativeOnUpdateMagicNode(long id, long nodeID, long number)
     {
-        OnRemoveMagicNodeEntity?.Invoke(id);
+        OnUpdateMagicNode?.Invoke(new LogicMagicNodeEntity(id, nodeID, number));
     }
-    private void NativeOnPlayerBuffChanged(long player, long buffID, bool addition)
+    private void NativeOnRemvoeMagicNode(long id)
     {
-        OnPlayerBuffChanged?.Invoke(player, buffID, addition);
+        OnRemvoeMagicNode?.Invoke(id);
     }
     private void NativeOnPlayerBagMagicNodeChanged(long player, long nodeID, bool addition)
     {
@@ -280,6 +281,14 @@ public class LogicWorld : IDisposable
     {
         OnPlayerWandCDUpdate?.Invoke(player, wand, new LogicTimeSpan(start, end));
     }
+    private void NativeOnPlayerMagicNodePickListChanged(long player, long nodeID, bool addition)
+    {
+        OnPlayerMagicNodePickListChanged?.Invoke(player, nodeID, addition);
+    }
+    private void NativeOnPlayerWandChanged(long player, long wand)
+    {
+        OnPlayerWandChanged?.Invoke(player, wand);
+    }
 
     private void ShowFloatText(Real3 position, Real3 color, string value)
     {
@@ -289,169 +298,69 @@ public class LogicWorld : IDisposable
     {
         OnEffectMsg?.Invoke(new LogicEffectMsg(position, forward, resource));
     }
+
+    private void NativeOnLoadGameEntity(long id, string resource, string anim, Real3 forward, Real3 position)
+    {
+
+    }
+    private void NativeOnLoadGameUnit(long id, long player, UnitType unitType, Real hp, Real maxHP, Real mp, Real maxMP)
+    {
+
+    }
+    private void NativeOnLoadBuff(long unitId, long id, long icon, long number, Real startTime, Real endTime)
+    {
+
+    }
+    private void NativeOnLoadMagicNode(long id, long configId, long number)
+    {
+
+    }
     #endregion
     #region InitFunctions
-    public void GetLogicEntities(Action<LogicEntity> action)
+    private long Init_GetPlayerCount()
     {
-        using (var getCount = kernel.FindFunction("Init_GetEntityCount"))
-        using (var getCountInvoker = getCount.CreateInvoker())
+        using (var function = kernel.FindFunction("Init_GetPlayerCount"))
+        using (var invoker = function.CreateInvoker())
         {
-            getCountInvoker.Start(true, true);
-            var count = getCountInvoker.GetIntegerReturnValue(0);
-            using (var getEntity = kernel.FindFunction("Init_GetEntity"))
-                while (count-- > 0)
-                    using (var invoker = getEntity.CreateInvoker())
-                    {
-                        invoker.SetIntegerParameter(0, count);
-                        invoker.Start(true, true);
-                        var id = invoker.GetIntegerReturnValue(0);
-                        var owner = invoker.GetIntegerReturnValue(1);
-                        var resource = invoker.GetStringReturnValue(2);
-                        var anim = invoker.GetStringReturnValue(3);
-                        var forward = invoker.GetReal3ReturnValue(4);
-                        var position = invoker.GetReal3ReturnValue(5);
-                        action(new LogicEntity(id, owner, resource, anim, forward, position));
-                    }
-        }
-    }
-    public void GetLogicUnits(Action<LogicUnitEntity> action)
-    {
-        using (var getCount = kernel.FindFunction("Init_GetUnitCount"))
-        using (var getCountInvoker = getCount.CreateInvoker())
-        {
-            getCountInvoker.Start(true, true);
-            var count = getCountInvoker.GetIntegerReturnValue(0);
-            using (var getEntity = kernel.FindFunction("Init_GetUnit"))
-                while (count-- > 0)
-                    using (var invoker = getEntity.CreateInvoker())
-                    {
-                        invoker.SetIntegerParameter(0, count);
-                        invoker.Start(true, true);
-                        var id = invoker.GetIntegerReturnValue(0);
-                        var type = (UnitType)invoker.GetEnumReturnValue(1);
-                        var hp = invoker.GetRealReturnValue(2);
-                        var maxHP = invoker.GetRealReturnValue(3);
-                        var mp = invoker.GetRealReturnValue(4);
-                        var maxMP = invoker.GetRealReturnValue(5);
-                        action(new LogicUnitEntity(id, type, hp, maxHP, mp, maxMP));
-                    }
-        }
-    }
-    public void GetLogicBuffs(Action<LogicBuffEntity> action)
-    {
-        using (var getCount = kernel.FindFunction("Init_GetBuffCount"))
-        using (var getCountInvoker = getCount.CreateInvoker())
-        {
-            getCountInvoker.Start(true, true);
-            var count = getCountInvoker.GetIntegerReturnValue(0);
-            using (var getEntity = kernel.FindFunction("Init_GetBuff"))
-                while (count-- > 0)
-                    using (var invoker = getEntity.CreateInvoker())
-                    {
-                        invoker.SetIntegerParameter(0, count);
-                        invoker.Start(true, true);
-                        var id = invoker.GetIntegerReturnValue(0);
-                        var icon = invoker.GetIntegerReturnValue(1);
-                        var number = invoker.GetIntegerReturnValue(2);
-                        var startTime = invoker.GetRealReturnValue(3);
-                        var endTime = invoker.GetRealReturnValue(4);
-                        action(new LogicBuffEntity(id, icon, number, new LogicTimeSpan(startTime, endTime)));
-                    }
-        }
-    }
-    public void GetMagicNodes(Action<LogicMagicNodeEntity> action)
-    {
-        using (var getCount = kernel.FindFunction("Init_GetMagicNodeCount"))
-        using (var getCountInvoker = getCount.CreateInvoker())
-        {
-            getCountInvoker.Start(true, true);
-            var count = getCountInvoker.GetIntegerReturnValue(0);
-            using (var getEntity = kernel.FindFunction("Init_GetMagicNode"))
-                while (count-- > 0)
-                    using (var invoker = getEntity.CreateInvoker())
-                    {
-                        invoker.SetIntegerParameter(0, count);
-                        invoker.Start(true, true);
-                        var id = invoker.GetIntegerReturnValue(0);
-                        var nodeId = invoker.GetIntegerReturnValue(1);
-                        var number = invoker.GetIntegerReturnValue(2);
-                        action(new LogicMagicNodeEntity(id, nodeId, number));
-                    }
+            invoker.Start(true, true);
+            return invoker.GetIntegerReturnValue(0);
         }
     }
     public LogicPlayerEntity[] GetLogicPlayers()
     {
-        using (var function = kernel.FindFunction("Init_GetPlayerCount"))
-        using (var playerCountInvoker = function.CreateInvoker())
-        {
-            playerCountInvoker.Start(true, true);
-            var players = new LogicPlayerEntity[playerCountInvoker.GetIntegerReturnValue(0)];
-            using (var getPlayer = kernel.FindFunction("Init_GetPlayer"))
-            using (var getBuffCount = kernel.FindFunction("Init_GetPlayerBuffCount"))
-            using (var getBuff = kernel.FindFunction("Init_GetPlayerBuff"))
-            using (var getBagMagicNodeCount = kernel.FindFunction("Init_GetPlayerBagMagicNodeCount"))
-            using (var getBagMagicNode = kernel.FindFunction("Init_GetPlayerBagMagicNode"))
-            using (var getWandMagicNodeCount = kernel.FindFunction("Init_GetPlayerWandMagicNodeCount"))
-            using (var getWandMagicNode = kernel.FindFunction("Init_GetPlayerWandMagicNode"))
-                for (var i = 0; i < players.Length; i++)
+        var players = new LogicPlayerEntity[Init_GetPlayerCount()];
+        using (var function = kernel.FindFunction("Init_GetPlayer"))
+            for (var i = 0; i < players.Length; i++)
+                using (var invoker = function.CreateInvoker())
                 {
-                    using (var invoker = getPlayer.CreateInvoker())
-                    {
-                        invoker.SetIntegerParameter(0, i);
-                        invoker.Start(true, true);
-                        var ctrlId = invoker.GetIntegerReturnValue(0);
-                        var name = invoker.GetStringReturnValue(1);
-                        players[i] = new LogicPlayerEntity(i, ctrlId, name);
-                    }
-                    using (var countInvoker = getBuffCount.CreateInvoker())
-                    {
-                        countInvoker.SetIntegerParameter(0, i);
-                        countInvoker.Start(true, true);
-                        var count = countInvoker.GetIntegerReturnValue(0);
-                        for (int index = 0; index < count; index++)
-                            using (var invoker = getBuff.CreateInvoker())
-                            {
-                                invoker.SetIntegerParameter(0, i);
-                                invoker.SetIntegerParameter(1, index);
-                                invoker.Start(true, true);
-                                players[i].buffs.Add(invoker.GetIntegerReturnValue(0));
-                            }
-                    }
-                    using (var countInvoker = getBagMagicNodeCount.CreateInvoker())
-                    {
-                        countInvoker.SetIntegerParameter(0, i);
-                        countInvoker.Start(true, true);
-                        var count = countInvoker.GetIntegerReturnValue(0);
-                        for (int index = 0; index < count; index++)
-                            using (var invoker = getBagMagicNode.CreateInvoker())
-                            {
-                                invoker.SetIntegerParameter(0, i);
-                                invoker.SetIntegerParameter(1, index);
-                                invoker.Start(true, true);
-                                players[i].bag.Add(invoker.GetIntegerReturnValue(0));
-                            }
-                    }
-                    for (var wand = 0; wand < players[i].wands.Length; wand++)
-                        using (var countInvoker = getWandMagicNodeCount.CreateInvoker())
-                        {
-                            countInvoker.SetIntegerParameter(0, i);
-                            countInvoker.SetIntegerParameter(1, wand);
-                            countInvoker.Start(true, true);
-                            var count = countInvoker.GetIntegerReturnValue(0);
-                            for (int index = 0; index < count; index++)
-                                using (var invoker = getWandMagicNode.CreateInvoker())
-                                {
-                                    invoker.SetIntegerParameter(0, i);
-                                    invoker.SetIntegerParameter(1, wand);
-                                    invoker.SetIntegerParameter(2, index);
-                                    invoker.Start(true, true);
-                                    players[i].wands[wand].nodes.Add(invoker.GetIntegerReturnValue(0));
-                                }
-                        }
+                    invoker.SetIntegerParameter(0, i);
+                    invoker.Start(true, true);
+                    var ctrlId = invoker.GetIntegerReturnValue(0);
+                    var playerName = invoker.GetStringReturnValue(1);
+                    var bag = invoker.GetIntegersReturnValue(2);
+                    var buffs = invoker.GetIntegersReturnValue(3);
+                    players[i] = new LogicPlayerEntity(i, ctrlId, playerName, bag, buffs);
                 }
-
-            return players;
-        }
+        using (var function = kernel.FindFunction("Init_GetPlayerWand"))
+            for (var pid = 0; pid < players.Length; pid++)
+                for (var wand = 0; wand < 3; wand++)
+                    using (var invoker = function.CreateInvoker())
+                    {
+                        invoker.SetIntegerParameter(0, pid);
+                        invoker.SetIntegerParameter(1, wand);
+                        invoker.Start(true, true);
+                        var start = invoker.GetIntegerReturnValue(0);
+                        var end = invoker.GetIntegerReturnValue(1);
+                        var nodes = invoker.GetIntegersReturnValue(2);
+                        players[pid].wands[wand] = new LogicWand(start, end, nodes);
+                    }
+        return players;
+    }
+    public void LoadGameData()
+    {
+        using (var function = kernel.FindFunction("LoadGameData"))
+        using (var invoker = function.CreateInvoker())
+            invoker.Start(true, true);
     }
     #endregion
 
@@ -602,14 +511,16 @@ public class LogicWorld : IDisposable
         RegistFunction("OnRemoveEntity", "NativeOnRemoveEntity");
         RegistFunction("OnUpdateUnitEntity", "NativeOnUpdateUnitEntity");
         RegistFunction("OnRemoveUnitEntity", "NativeOnRemoveUnitEntity");
-        RegistFunction("OnUpdateBuffEntity", "NativeOnUpdateBuffEntity");
-        RegistFunction("OnRemoveBuffEntity", "NativeOnRemoveBuffEntity");
-        RegistFunction("OnUpdateMagicNodeEntity", "NativeOnUpdateMagicNodeEntity");
-        RegistFunction("OnRemvoeMagicNodeEntity", "NativeOnRemvoeMagicNodeEntity");
-        RegistFunction("OnPlayerBuffChanged", "NativeOnPlayerBuffChanged");
+        RegistFunction("OnUnitBuffChanged", "NativeOnUnitBuffChanged");
+        RegistFunction("OnUpdateBuff", "NativeOnUpdateBuff");
+        RegistFunction("OnRemoveBuff", "NativeOnRemoveBuff");
+        RegistFunction("OnUpdateMagicNode", "NativeOnUpdateMagicNode");
+        RegistFunction("OnRemvoeMagicNode", "NativeOnRemvoeMagicNode");
         RegistFunction("OnPlayerBagMagicNodeChanged", "NativeOnPlayerBagMagicNodeChanged");
         RegistFunction("OnPlayerWandMagicNodeChanged", "NativeOnPlayerWandMagicNodeChanged");
         RegistFunction("OnPlayerWandCDUpdate", "NativeOnPlayerWandCDUpdate");
+        RegistFunction("OnPlayerMagicNodePickListChanged", "NativeOnPlayerMagicNodePickListChanged");
+        RegistFunction("OnPlayerWandChanged", "NativeOnPlayerWandChanged");
 
         RegistFunction("ShowFloatText", "ShowFloatText");
         RegistFunction("ShowEffect", "ShowEffect");

@@ -11,8 +11,10 @@ public enum UnitType
 [Serializable]
 public struct ConfigUnit
 {
+    [ConfigId]
+    public long id;
     public string name;
-    public string entity;
+    public long entityId;
     public UnitType type;
     public Real hp;
     public Real mp;

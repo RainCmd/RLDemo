@@ -10,9 +10,12 @@ public enum MagicNodeType
 [Serializable]
 public struct ConfigMagicNode
 {
+    [ConfigId]
+    public long id;
     public string name;
     public long icon;
-    public string resouce;
+    [ConfigId]
+    public long endityId;
     public Real cd;
     public Real cost;
     public MagicNodeType type;

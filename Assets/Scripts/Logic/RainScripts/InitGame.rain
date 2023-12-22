@@ -35,6 +35,7 @@ namespace InitGame
         LoadMagicNodeConfig()
         LoadEntityConfig()
         LoadUnitConfig()
+
         var cnt = GetControlCount()
         cidx2pid = integer[cnt]
         players = Player[cnt]
@@ -59,7 +60,8 @@ namespace InitGame
             for var i = 0; i < u.buffCount; i++
                 var b = u.buffs[i]
                 OnLoadBuff(u.GetHandleID(), b.GetHandleID(), b.icon, b.number, b.startTime, b.endTime)
-
+        for var i, var c = 0, players.GetLength(); i < c; i++
+            
         
     public LoadGameData()
         //todo 遍历实体，单位，buff和节点 然后调用上面几个OnLoad函数
@@ -67,18 +69,19 @@ namespace InitGame
 
     public integer Init_GetPlayerCount()
         return players.GetLength()
-    public integer, string Init_GetPlayer(integer id)
-        return players[id].ctrlId, players[id].name
-    public integer Init_GetPlayerBuffCount(integer playerId)
-        return players[playerId].hero.buffCount
-    public integer Init_GetPlayerBuff(integer playerId, integer index)
-        return players[playerId].hero.buffs[index].GetHandleID()
-    public integer Init_GetPlayerBagMagicNodeCount(integer playerId)
-        return players[playerId].bagMagicNodeCount
-    public integer Init_GetPlayerBagMagicNode(integer playerId, integer index)
-        return players[playerId].bagMagicNodes[index].GetHandleID()
-    public integer Init_GetPlayerWandMagicNodeCount()
-        return WAND_SLOT_SIZE
-    public integer Init_GetPlayerWandMagicNode(integer playerId, integer wand, integer index)
-        return players[playerId].wands[wand].magicNodes[index].GetHandleID()
+    public integer, string, integer[], integer[] Init_GetPlayer(integer id)//控制id,玩家名,背包列表,buff列表
+        var player = players[id]
+        var bag = integer[player.bagMagicNodeCount]
+        for var i, var c = 0, bag.GetLength(); i < c; i++
+            bag[i] = player.bagMagicNodes[i].GetHandleID()
+        var buff = integer[player.hero.buffCount]
+        for var i, var c = 0, buff.GetLength(); i < c; i++
+            buff[i] = player.hero.buffs[i].GetHandleID()
+        return players[id].ctrlId, players[id].name, bag, buff
+    public real, real, integer[] Init_GetPlayerWand(integer playerId, integer wand)//法杖cdStart,法杖cdEnd,法杖法术
+        var wand = players[playerId].wands[wand]
+        var nodes = integer[WAND_SLOT_SIZE]
+        for var i, var c = 0, nodes.GetLength(); i < c; i++
+            nodes[i] = wand.magicNodes[i]?.GetHandleID()
+        return wand.cdStartTime, wand.cdEndTime, nodes
 

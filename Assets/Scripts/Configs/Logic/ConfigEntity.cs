@@ -3,7 +3,8 @@
 [Serializable]
 public struct ConfigEntity
 {
-    public string name;
+    [ConfigId]
+    public long id;
     public string resource;
     public const string Path = "/Configs/Entity.cfg";
 }

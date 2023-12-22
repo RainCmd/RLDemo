@@ -34,11 +34,10 @@ public class RendererWorld : IDisposable
                 world.OnEntityRemoved += OnEntityRemoved;
                 world.OnUpdateUnitEntity += OnUpdateUnitEntity;
                 world.OnRemoveUnitEntity += OnRemoveUnitEntity;
-                world.OnUpdateBuffEntity += OnUpdateBuffEntity;
-                world.OnRemoveBuffEntity += OnRemoveBuffEntity;
-                world.OnUpdateMagicNodeEntity += OnUpdateMagicNodeEntity;
-                world.OnRemoveMagicNodeEntity += OnRemoveMagicNodeEntity;
-                world.OnPlayerBuffChanged += OnPlayerBuffChanged;
+                world.OnUpdateBuff += OnUpdateBuffEntity;
+                world.OnRemoveBuff += OnRemoveBuffEntity;
+                world.OnUpdateMagicNode += OnUpdateMagicNodeEntity;
+                world.OnRemvoeMagicNode += OnRemoveMagicNodeEntity;
                 world.OnPlayerBagMagicNodeChanged += OnPlayerBagMagicNodeChanged;
                 world.OnPlayerWandMagicNodeChanged += OnPlayerWandMagicNodeChanged;
             }
@@ -50,11 +49,10 @@ public class RendererWorld : IDisposable
         if (World == null) return;
         World.OnPlayerWandMagicNodeChanged -= OnPlayerWandMagicNodeChanged;
         World.OnPlayerBagMagicNodeChanged -= OnPlayerBagMagicNodeChanged;
-        World.OnPlayerBuffChanged -= OnPlayerBuffChanged;
-        World.OnRemoveMagicNodeEntity -= OnRemoveMagicNodeEntity;
-        World.OnUpdateMagicNodeEntity -= OnUpdateMagicNodeEntity;
-        World.OnRemoveBuffEntity -= OnRemoveBuffEntity;
-        World.OnUpdateBuffEntity -= OnUpdateBuffEntity;
+        World.OnRemvoeMagicNode -= OnRemoveMagicNodeEntity;
+        World.OnUpdateMagicNode -= OnUpdateMagicNodeEntity;
+        World.OnRemoveBuff -= OnRemoveBuffEntity;
+        World.OnUpdateBuff -= OnUpdateBuffEntity;
         World.OnRemoveUnitEntity -= OnRemoveUnitEntity;
         World.OnUpdateUnitEntity -= OnUpdateUnitEntity;
         World.OnEntityRemoved -= OnEntityRemoved;
