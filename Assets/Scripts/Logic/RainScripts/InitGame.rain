@@ -50,7 +50,7 @@ namespace InitGame
         StartWorld()
 
     public native OnLoadGameEntity(integer id, string resource, string anim, real3 forward, real3 position)
-    public native OnLoadGameUnit(integer id, integer player, UnitType unitType, real hp, real maxHP,real mp, real maxMP)
+    public native OnLoadGameUnit(integer id, integer player, UnitType unitType, real hp, real maxHP, real mp, real maxMP)
     public native OnLoadBuff(integer unitId, integer id, integer icon, integer number, real startTime, real endTime)
     public native OnLoadMagicNode(integer id, integer configId, integer number)
     space OnLoadEntity(GameEntity e)
