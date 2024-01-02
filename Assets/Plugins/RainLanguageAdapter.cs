@@ -676,7 +676,11 @@ namespace RainLanguage
     public struct Real4 { public Real x, y, z, w; }
     public unsafe class RainLanguageAdapter
     {
+#if UNITY_ANDROID
+        private const string RainLanguageDLLName = "RainLanguageSO";
+#else
         private const string RainLanguageDLLName = "RainLanguage";
+#endif
         private static T* AllocMemory<T>(int size) where T : unmanaged
         {
             return (T*)Marshal.AllocHGlobal(size * sizeof(T));

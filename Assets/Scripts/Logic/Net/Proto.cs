@@ -229,13 +229,21 @@ public struct ProtoWriter
         Write(buffer.Length);
         WriteBytes(buffer);
     }
-    public void Send(Socket socket, EndPoint remote)
+    public unsafe void Send(Socket socket, EndPoint remote)
     {
-        socket.SendTo(buffer, position, SocketFlags.None, remote);
+        fixed (byte* pbuffer = buffer)
+        {
+            uint* sp = (uint*)pbuffer;
+            uint sum = 0;
+            for (int i = 4; i < buffer.Length; i++) sum += buffer[i];
+            *sp ^= sum;
+            socket.SendTo(buffer, position, SocketFlags.None, remote);
+            *sp ^= sum;
+        }
     }
     public void Broadcast(Socket socket)
     {
-        socket.SendTo(buffer, position, SocketFlags.None, broadcastIP);
+        Send(socket, broadcastIP);
     }
     private static readonly IPEndPoint broadcastIP = new IPEndPoint(IPAddress.Broadcast, Config.HallPort);
 }
@@ -244,11 +252,19 @@ public struct ProtoReader
     public int position;
     public readonly byte[] buffer;
     public readonly bool valid;
-    public ProtoReader(byte[] buffer, int size)
+    public unsafe ProtoReader(byte[] buffer, int size)
     {
         position = 4;
         this.buffer = buffer;
-        valid = size >= 4 && buffer[0] == 'R' && buffer[1] == 'A' && buffer[2] == 'I' && buffer[3] == 'N';
+        fixed (byte* pbuffer = buffer)
+        {
+            uint* sp = (uint*)pbuffer;
+            uint sum = 0;
+            for (int i = 4; i < buffer.Length; i++) sum += buffer[i];
+            *sp ^= sum;
+            valid = size >= 4 && buffer[0] == 'R' && buffer[1] == 'A' && buffer[2] == 'I' && buffer[3] == 'N';
+            *sp ^= sum;
+        }
     }
     public HallProto ReadHallProto()
     {

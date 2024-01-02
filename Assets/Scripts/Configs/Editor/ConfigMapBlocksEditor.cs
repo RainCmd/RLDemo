@@ -69,6 +69,8 @@ public class ConfigMapBlocksEditor : Editor
         EditorGUILayout.EndHorizontal();
         if (GUILayout.Button("重新生成"))
         {
+            var sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
             serializedObject.ApplyModifiedProperties();
             var blocks = target as ConfigMapBlocks;
             blocks.width = width;
@@ -104,6 +106,8 @@ public class ConfigMapBlocksEditor : Editor
                     blocks.blocks.Add(info);
                 }
             serializedObject.Update();
+            sw.Stop();
+            Debug.LogFormat("<color=#00ff00>地图生成完成！</color> 耗时<color=#ffcc00>{0}</color>ms", sw.ElapsedMilliseconds);
         }
     }
     [MenuItem("配置文件/地图")]
