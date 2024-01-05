@@ -490,9 +490,9 @@ public class LogicWorld : IDisposable
     }
 
     private static readonly Dictionary<string, CallerHelper> callerMap = new Dictionary<string, CallerHelper>();
-    private static void RegistFunction(string name, string function)
+    private static void RegistFunction(string rainFunctionName, string csFunctionName)
     {
-        callerMap.Add(Config.GameName + "." + name, CallerHelper.Create<LogicWorld>(function));
+        callerMap.Add(Config.GameName + "." + rainFunctionName, CallerHelper.Create<LogicWorld>(csFunctionName));
     }
     static LogicWorld()
     {
