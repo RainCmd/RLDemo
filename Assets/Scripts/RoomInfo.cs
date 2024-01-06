@@ -109,15 +109,17 @@ public struct RoomInfo
     public long seed;
     public string name;
     public PlayerInfo owner;
+    public int ctrlId;
     public List<MemberInfo> members;
 
-    public RoomInfo(IPEndPoint ip, Guid id, string name, PlayerInfo owner, List<MemberInfo> members)
+    public RoomInfo(IPEndPoint ip, Guid id, string name, PlayerInfo owner, int ctrlId, List<MemberInfo> members)
     {
         this.ip = ip;
         this.id = id;
         seed = 0;
         this.name = name;
         this.owner = owner;
+        this.ctrlId = ctrlId;
         this.members = members;
     }
 }

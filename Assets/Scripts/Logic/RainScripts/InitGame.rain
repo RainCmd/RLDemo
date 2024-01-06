@@ -28,6 +28,7 @@ namespace InitGame
         players[ctrlId2pId[ctrlId]].OnEquip(trg, weapon, slot)
     
     space native integer GetControlCount()
+    space native integer GetMaxCtrlID()
     space native integer, string GetControl(integer idx)
     //逻辑世界初始化
     public GameMain()
@@ -36,12 +37,12 @@ namespace InitGame
         LoadUnitConfig()
 
         var cnt = GetControlCount()
-        ctrlId2pId = integer[cnt]
+        ctrlId2pId = integer[GetMaxCtrlID()]
         players = Player[cnt]
         for var i = 0; i < cnt; i++
             var ctrlId, var name = GetControl(i)
             ctrlId2pId[ctrlId] = i
-            players[i] = Player(i, ctrlId, name)
+            players[i] = Player(i, name)
             players[i].hero = CreateUnit('U_hero', i, real3(0, 0, 1), GetRandomWorldPosition())
 
     //逻辑更新开始前
@@ -59,28 +60,43 @@ namespace InitGame
             for var i = 0; i < u.buffCount; i++
                 var b = u.buffs[i]
                 OnLoadBuff(u.GetHandleID(), b.GetHandleID(), b.icon, b.number, b.startTime, b.endTime)
-        for var i, var c = 0, players.GetLength(); i < c; i++
-            
-        
+
     public LoadGameData()
-        //todo 遍历实体，单位，buff和节点 然后调用上面几个OnLoad函数
         worldRoot.SelectAll(OnLoadEntity)
+        for var i = 0; i < players.GetLength(); i++
+            var player = players[i]
+            for var i = 0; i < player.bagMagicNodeCount; i++
+                var node = player.bagMagicNodes[i]
+                OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
+            for var i = 0; i < player.wands.GetLength(); i++
+                var wand = player.wands[i]
+                for var i = 0; i < wand.magicNodes.GetLength(); i++
+                    var node = wand.magicNodes[i]
+                    OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
+            for var i = 0; i < player.pickListCount; i++
+                var node = player.pickList[i].node
+                if node.number != 0
+                    OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
+
 
     public integer Init_GetPlayerCount()
         return players.GetLength()
-    public integer, string, integer[], integer[] Init_GetPlayer(integer id)//控制id,玩家名,背包列表,buff列表
+    public string, integer[], integer[], integer[] Init_GetPlayer(integer id)//控制id,玩家名,背包列表,buff列表,拾取列表
         var player = players[id]
         var bag = integer[player.bagMagicNodeCount]
-        for var i, var c = 0, bag.GetLength(); i < c; i++
+        for var i = 0; i < bag.GetLength(); i++
             bag[i] = player.bagMagicNodes[i].GetHandleID()
         var buff = integer[player.hero.buffCount]
-        for var i, var c = 0, buff.GetLength(); i < c; i++
+        for var i = 0; i < buff.GetLength(); i++
             buff[i] = player.hero.buffs[i].GetHandleID()
-        return players[id].ctrlId, players[id].name, bag, buff
+        var pick = integer[player.pickListCount]
+        for var i = 0; i < player.pickListCount; i++
+            pick[i] = player.pickList[i].node.GetHandleID()
+        return players[id].name, bag, buff, pick
     public real, real, integer[] Init_GetPlayerWand(integer playerId, integer wand)//法杖cdStart,法杖cdEnd,法杖法术
         var wand = players[playerId].wands[wand]
         var nodes = integer[WAND_SLOT_SIZE]
-        for var i, var c = 0, nodes.GetLength(); i < c; i++
+        for var i = 0; i < nodes.GetLength(); i++
             nodes[i] = wand.magicNodes[i]?.GetHandleID()
         return wand.cdStartTime, wand.cdEndTime, nodes
 

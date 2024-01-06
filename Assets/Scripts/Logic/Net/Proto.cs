@@ -16,6 +16,7 @@ using RainLanguage;
 //  HallProto.JoinRes:
 //      string      房间名
 //      PlayerInfo  房主信息
+//      int         房主控制id
 //      int         成员数量
 //          loop成员数量:
 //              MemberInfo  成员信息

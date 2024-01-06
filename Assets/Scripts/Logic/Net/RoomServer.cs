@@ -37,7 +37,7 @@ public class RoomServer : IRoom
     {
         _disposed = false;
         State = RoomState.Ready;
-        info = new RoomInfo(null, Guid.NewGuid(), name, PlayerInfo.Local, new List<RoomInfo.MemberInfo>());
+        info = new RoomInfo(null, Guid.NewGuid(), name, PlayerInfo.Local, 0, new List<RoomInfo.MemberInfo>());
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         var port = 2023;
     rebind:
@@ -136,6 +136,7 @@ public class RoomServer : IRoom
                                 writer.Write(HallProto.JoinRes);
                                 writer.Write(info.name);
                                 writer.Write(info.owner);
+                                writer.Write(info.ctrlId);
                                 lock (info.members)
                                 {
                                     writer.Write(info.members.Count);
@@ -158,7 +159,7 @@ public class RoomServer : IRoom
                                     var idx = info.members.FindIndex(v => v.player.id == player.id);
                                     if (idx < 0)
                                     {
-                                        member = new RoomInfo.MemberInfo(player, rip, 
+                                        member = new RoomInfo.MemberInfo(player, rip,
                                             ctrlIdPool.Count > 0 ? ctrlIdPool.Pop() : ctrlIdx++,    //理论上应该由玩家自己选择控制id，这里简化成自动分配了
                                             false, 0);
                                         info.members.Add(member);
@@ -348,7 +349,7 @@ public class RoomServer : IRoom
     {
         if (State != RoomState.Game) return;
         int ctrlId;
-        if (id == info.owner.id) ctrlId = 0;
+        if (id == info.owner.id) ctrlId = info.ctrlId;
         else lock (info.members)
             {
                 var idx = info.members.FindIndex(v => v.player.id == id);

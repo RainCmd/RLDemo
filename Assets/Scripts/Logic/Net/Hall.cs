@@ -66,10 +66,11 @@ public class Hall : IDisposable
                                 {
                                     var name = reader.ReadString();
                                     var owner = reader.ReadPlayerInfo();
+                                    var ctrlId = reader.ReadInt();
                                     var members = new List<RoomInfo.MemberInfo>();
                                     var count = reader.ReadInt();
                                     while (count-- > 0) members.Add(reader.ReadRoomMemberInfo());
-                                    Join?.Invoke(new RoomInfo(rip, guid, name, owner, members));
+                                    Join?.Invoke(new RoomInfo(rip, guid, name, owner, ctrlId, members));
                                 }
                                 break;
                         }

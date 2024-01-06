@@ -102,20 +102,28 @@ public struct LogicWand
 public struct LogicPlayerEntity
 {
     public long playerId;
-    public long ctrlId;
     public string name;
     public readonly List<long> buffs;
     public readonly List<long> bag;
+    public readonly List<long> picks;
     public LogicWand[] wands;
-    public LogicPlayerEntity(long playerId, long ctrlId, string name, long[] bag, long[] buffs)
+    public LogicPlayerEntity(long playerId, string name, long[] bag, long[] buffs, long[] picks)
     {
         this.playerId = playerId;
-        this.ctrlId = ctrlId;
         this.name = name;
         this.buffs = new List<long>(buffs);
         this.bag = new List<long>(bag);
+        this.picks = new List<long>(picks);
         wands = new LogicWand[3];
     }
+}
+public class LogicInitResult
+{
+    public LogicPlayerEntity[] players;
+    public readonly Dictionary<long, LogicEntity> entities = new Dictionary<long, LogicEntity>();
+    public readonly Dictionary<long, LogicUnitEntity> units = new Dictionary<long, LogicUnitEntity>();
+    public readonly Dictionary<long, Dictionary<long, LogicBuffEntity>> buffs = new Dictionary<long, Dictionary<long, LogicBuffEntity>>();// unitId => buffId =>> buff
+    public readonly Dictionary<long, LogicMagicNodeEntity> magicNodes = new Dictionary<long, LogicMagicNodeEntity>();
 }
 public struct LogicFloatTextMsg
 {
@@ -203,6 +211,12 @@ public class LogicWorld : IDisposable
     {
         return mgr.Room.Info.members.Count + 1;
     }
+    private long GetMaxCtrlID()
+    {
+        var ctrlId = mgr.Room.Info.ctrlId;
+
+        return ctrlId;
+    }
     private CtrlInfo GetCtrl(long idx)
     {
         if (idx > 0)
@@ -210,7 +224,7 @@ public class LogicWorld : IDisposable
             var member = mgr.Room.Info.members[(int)idx - 1];
             return new CtrlInfo(member.ctrlId, member.player.name);
         }
-        else return new CtrlInfo(0, mgr.Room.Info.owner.name);
+        else return new CtrlInfo(mgr.Room.Info.ctrlId, mgr.Room.Info.owner.name);
     }
     private long Config_GetMagicNodeCount()
     {
@@ -305,22 +319,27 @@ public class LogicWorld : IDisposable
 
     private void NativeOnLoadGameEntity(long id, string resource, string anim, Real3 forward, Real3 position)
     {
-
+        initResult?.entities?.Add(id, new LogicEntity(id, resource, anim, forward, position));
     }
     private void NativeOnLoadGameUnit(long id, long player, UnitType unitType, Real hp, Real maxHP, Real mp, Real maxMP)
     {
-
+        initResult?.units?.Add(id, new LogicUnitEntity(id, player, unitType, hp, maxHP, mp, maxMP));
     }
     private void NativeOnLoadBuff(long unitId, long id, long icon, long number, Real startTime, Real endTime)
     {
-
+        if (initResult != null)
+        {
+            if (!initResult.buffs.TryGetValue(unitId, out var buffs)) initResult.buffs.Add(unitId, buffs = new Dictionary<long, LogicBuffEntity>());
+            buffs.Add(id, new LogicBuffEntity(id, icon, number, new LogicTimeSpan(startTime, endTime)));
+        }
     }
     private void NativeOnLoadMagicNode(long id, long configId, long number)
     {
-
+        if (initResult != null) initResult.magicNodes[id] = new LogicMagicNodeEntity(id, configId, number);//多个玩家间pick list中可能会有重复
     }
     #endregion
     #region InitFunctions
+    private LogicInitResult initResult;
     private long Init_GetPlayerCount()
     {
         using (var function = kernel.FindFunction("Init_GetPlayerCount"))
@@ -339,11 +358,11 @@ public class LogicWorld : IDisposable
                 {
                     invoker.SetIntegerParameter(0, i);
                     invoker.Start(true, true);
-                    var ctrlId = invoker.GetIntegerReturnValue(0);
-                    var playerName = invoker.GetStringReturnValue(1);
-                    var bag = invoker.GetIntegersReturnValue(2);
-                    var buffs = invoker.GetIntegersReturnValue(3);
-                    players[i] = new LogicPlayerEntity(i, ctrlId, playerName, bag, buffs);
+                    var playerName = invoker.GetStringReturnValue(0);
+                    var bag = invoker.GetIntegersReturnValue(1);
+                    var buffs = invoker.GetIntegersReturnValue(2);
+                    var picks = invoker.GetIntegersReturnValue(3);
+                    players[i] = new LogicPlayerEntity(i, playerName, bag, buffs, picks);
                 }
         using (var function = kernel.FindFunction("Init_GetPlayerWand"))
             for (var pid = 0; pid < players.Length; pid++)
@@ -360,11 +379,15 @@ public class LogicWorld : IDisposable
                     }
         return players;
     }
-    public void LoadGameData()
+    public LogicInitResult LoadGameData()
     {
+        var initResult = this.initResult = new LogicInitResult();
         using (var function = kernel.FindFunction("LoadGameData"))
         using (var invoker = function.CreateInvoker())
             invoker.Start(true, true);
+        initResult.players = GetLogicPlayers();
+        this.initResult = null;
+        return initResult;
     }
     #endregion
 
@@ -503,6 +526,7 @@ public class LogicWorld : IDisposable
         RegistFunction("Debug", "Debug");
 
         RegistFunction("InitGame.GetControlCount", "GetCtrlCount");
+        RegistFunction("InitGame.GetMaxCtrlID", "GetMaxCtrlID");
         RegistFunction("InitGame.GetControl", "GetCtrl");
         RegistFunction("GameConfig.ConfigMagicNode_GetConfigCount", "Config_GetMagicNodeCount");
         RegistFunction("GameConfig.ConfigMagicNode_GetConfig", "Config_GetMagicNode");

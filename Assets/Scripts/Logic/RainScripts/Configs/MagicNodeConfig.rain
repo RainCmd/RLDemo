@@ -17,7 +17,7 @@ namespace GameConfig
         MagicNodeType nodeType 
         integer multiple
         integer sequence
-        integer number
+        integer number//大于0表示可用次数，小于0表示可以无限使用
         string desc
         string logic
 

@@ -67,7 +67,8 @@ public class CompileRainScripts
         var fidx = path.LastIndexOfAny(new char[] { '\\', '/' });
         var sidx = path.LastIndexOf('.');
         path = $"{path.Substring(0, fidx + 1)}<color=#00ccff>{path.Substring(fidx + 1, sidx - fidx - 1)}</color>{path.Substring(sidx)}";
-        var detailMsg = $"{path} line:<color=#ffcc00>{detail.line}</color> [{detail.start}, {detail.start + detail.length}]\n错误码:<color=#{msgColor}>{detail.messageType}</color>";
+        if (!rainErrorMsgMap.TryGetValue(detail.messageType.ToString(), out var errMsg)) errMsg = detail.messageType.ToString();
+        var detailMsg = $"{path} line:<color=#ffcc00>{detail.line}</color> [{detail.start}, {detail.start + detail.length}]\n错误码:<color=#{msgColor}>{errMsg}</color>";
         var emsg = msg.ExteraMsg;
         if (!string.IsNullOrEmpty(emsg)) detailMsg += "\n" + emsg;
         EnqueueLogMsg(action, assetPath, detailMsg);
@@ -147,5 +148,15 @@ public class CompileRainScripts
         {
             EditorUtility.ClearProgressBar();
         }
+    }
+    static readonly Dictionary<string, string> rainErrorMsgMap = new Dictionary<string, string>();
+    static CompileRainScripts()
+    {
+        using (var fs = File.OpenText(dataPath + "\\Scripts\\Logic\\Editor\\RainErrorMsgMap.txt"))
+            while (!fs.EndOfStream)
+            {
+                var line = fs.ReadLine().Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
+                if (line?.Length == 2) rainErrorMsgMap.Add(line[0].Trim(), line[1].Trim());
+            }
     }
 }
