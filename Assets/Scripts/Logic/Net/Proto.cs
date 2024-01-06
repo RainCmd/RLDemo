@@ -48,6 +48,7 @@ public enum HallProto
 //      Guid    玩家id
 //  RoomProto.CEntryPlayer:
 //      PlayerInfo  玩家信息
+//      int         控制id
 //  RoomProto.CUpdatePlayer:
 //      Guid    玩家id
 //      bool    准备状态
@@ -157,6 +158,7 @@ public struct ProtoWriter
     public void Write(RoomInfo.MemberInfo info)
     {
         Write(info.player);
+        Write(info.ctrlId);
         Write(info.ready);
         Write(info.delay);
     }
@@ -288,9 +290,10 @@ public struct ProtoReader
     public RoomInfo.MemberInfo ReadRoomMemberInfo()
     {
         var player = ReadPlayerInfo();
+        var ctrlId = ReadInt();
         var ready = ReadBool();
         var delay = ReadInt();
-        return new RoomInfo.MemberInfo(player, ready, delay);
+        return new RoomInfo.MemberInfo(player, ctrlId, ready, delay);
     }
     public Operator ReadOperator()
     {

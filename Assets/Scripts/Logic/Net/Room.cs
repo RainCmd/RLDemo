@@ -31,7 +31,7 @@ public struct Operator
 }
 public struct PlayerOperator
 {
-    public int ctrlId;//-1表示房主
+    public int ctrlId;
     public Operator oper;
     public PlayerOperator(int ctrlId, Operator oper)
     {

@@ -205,8 +205,12 @@ public class LogicWorld : IDisposable
     }
     private CtrlInfo GetCtrl(long idx)
     {
-        if (idx > 0) return new CtrlInfo(idx - 1, mgr.Room.Info.members[(int)idx - 1].player.name);
-        else return new CtrlInfo(-1, mgr.Room.Info.owner.name);
+        if (idx > 0)
+        {
+            var member = mgr.Room.Info.members[(int)idx - 1];
+            return new CtrlInfo(member.ctrlId, member.player.name);
+        }
+        else return new CtrlInfo(0, mgr.Room.Info.owner.name);
     }
     private long Config_GetMagicNodeCount()
     {

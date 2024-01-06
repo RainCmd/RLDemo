@@ -63,6 +63,7 @@ public struct RoomInfo
     {
         public PlayerInfo player;
         public IPEndPoint ip;
+        public int ctrlId;
         public bool ready;
         public int delay;
         public DateTime time;
@@ -73,11 +74,12 @@ public struct RoomInfo
                 return DateTime.Now - time < TimeSpan.FromSeconds(2);
             }
         }
-        public MemberInfo(PlayerInfo player, bool ready, int delay) : this(player, null, ready, delay) { }
-        public MemberInfo(PlayerInfo player, IPEndPoint ip, bool ready, int delay)
+        public MemberInfo(PlayerInfo player, int ctrlId, bool ready, int delay) : this(player, null, ctrlId, ready, delay) { }
+        public MemberInfo(PlayerInfo player, IPEndPoint ip, int ctrlId, bool ready, int delay)
         {
             this.player = player;
             this.ip = ip;
+            this.ctrlId = ctrlId;
             this.ready = ready;
             this.delay = delay;
             time = DateTime.Now;

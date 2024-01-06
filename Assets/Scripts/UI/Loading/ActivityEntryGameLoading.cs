@@ -57,7 +57,7 @@ public class ActivityEntryGameLoading : UIActivity
         room.OnRemovePlayerInfo += OnRemovePlayerInfo;
         room.OnUpdateMember += OnUpdateMember;
         room.OnUpdatePlayerLoading += OnUpdatePlayerLoading;
-        CreatePlayer(new RoomInfo.MemberInfo(room.Info.owner, true, 0));
+        CreatePlayer(new RoomInfo.MemberInfo(room.Info.owner, 0, true, 0));
         lock (room.Info.members)
             foreach (var item in room.Info.members)
                 CreatePlayer(item);

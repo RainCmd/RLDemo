@@ -26,6 +26,9 @@ public class RoomServer : IRoom
     public event Action<Guid, float> OnUpdatePlayerLoading;
     public event Action OnEntryGame;
 
+    private readonly Stack<int> ctrlIdPool = new Stack<int>();
+    private int ctrlIdx = 1;
+
     public RoomState State { get; private set; }
     public RoomInfo Info => info;
     public long Frame { get; private set; }
@@ -155,7 +158,9 @@ public class RoomServer : IRoom
                                     var idx = info.members.FindIndex(v => v.player.id == player.id);
                                     if (idx < 0)
                                     {
-                                        member = new RoomInfo.MemberInfo(player, rip, false, 0);
+                                        member = new RoomInfo.MemberInfo(player, rip, 
+                                            ctrlIdPool.Count > 0 ? ctrlIdPool.Pop() : ctrlIdx++,    //理论上应该由玩家自己选择控制id，这里简化成自动分配了
+                                            false, 0);
                                         info.members.Add(member);
                                         var writer = new ProtoWriter(writerBuffer);
                                         writer.Write(guid);
@@ -187,6 +192,7 @@ public class RoomServer : IRoom
                                     }
                                     if (State == RoomState.Ready)
                                     {
+                                        ctrlIdPool.Push(info.members[idx].ctrlId);
                                         info.members.RemoveAt(idx);
                                         var writer = new ProtoWriter(writerBuffer);
                                         writer.Write(guid);
@@ -342,11 +348,12 @@ public class RoomServer : IRoom
     {
         if (State != RoomState.Game) return;
         int ctrlId;
-        if (id == info.owner.id) ctrlId = -1;
+        if (id == info.owner.id) ctrlId = 0;
         else lock (info.members)
             {
-                ctrlId = info.members.FindIndex(v => v.player.id == id);
-                if (ctrlId < 0) return;
+                var idx = info.members.FindIndex(v => v.player.id == id);
+                if (idx < 0) return;
+                ctrlId = info.members[idx].ctrlId;
             }
 
         lock (currentOperators) currentOperators.Add(new PlayerOperator(ctrlId, oper));

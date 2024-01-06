@@ -102,13 +102,14 @@ public class RoomClient : IRoom
                             {
                                 if (State != RoomState.Ready) break;
                                 var player = reader.ReadPlayerInfo();
+                                var ctrlId = reader.ReadInt();
                                 RoomInfo.MemberInfo member;
                                 lock (info.members)
                                 {
                                     var idx = info.members.FindIndex(v => v.player.id == player.id);
                                     if (idx < 0)
                                     {
-                                        member = new RoomInfo.MemberInfo(player, false, 0);
+                                        member = new RoomInfo.MemberInfo(player, ctrlId, false, 0);
                                         info.members.Add(member);
                                     }
                                     else
@@ -190,7 +191,7 @@ public class RoomClient : IRoom
                                 while (count-- > 0)
                                 {
                                     Guid id;
-                                    lock(info.members) id = info.members[reader.ReadInt()].player.id;
+                                    lock (info.members) id = info.members[reader.ReadInt()].player.id;
                                     var progress = reader.ReadFloat();
                                     OnUpdatePlayerLoading?.Invoke(id, progress);
                                 }
