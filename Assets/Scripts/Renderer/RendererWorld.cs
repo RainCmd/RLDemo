@@ -29,7 +29,10 @@ public class RendererWorld : IDisposable
             World = world;
             lock (world)
             {
-                
+                var loadResult = world.LoadGameData();
+                //加载世界初始数据
+
+
                 world.OnEntityChanged += OnEntityChanged;
                 world.OnEntityRemoved += OnEntityRemoved;
                 world.OnUpdateUnitEntity += OnUpdateUnitEntity;
