@@ -83,18 +83,15 @@ namespace InitGame
         players[ctrlId2pId[ctrlId]].name = name
     public integer Init_GetPlayerCount()
         return players.GetLength()
-    public string, integer[], integer[], integer[] Init_GetPlayer(integer id)//控制id,玩家名,背包列表,buff列表,拾取列表
+    public string, integer, integer[], integer, integer[] Init_GetPlayer(integer id)//玩家名, 玩家英雄id, 当前法杖, 背包列表, 拾取列表
         var player = players[id]
         var bag = integer[player.bagMagicNodeCount]
         for var i = 0; i < bag.GetLength(); i++
             bag[i] = player.bagMagicNodes[i].GetHandleID()
-        var buff = integer[player.hero.buffCount]
-        for var i = 0; i < buff.GetLength(); i++
-            buff[i] = player.hero.buffs[i].GetHandleID()
         var pick = integer[player.pickListCount]
         for var i = 0; i < player.pickListCount; i++
             pick[i] = player.pickList[i].node.GetHandleID()
-        return players[id].name, bag, buff, pick
+        return player.name, player.hero?.GetHandleID(), player.currentWand, bag, pick
     public real, real, integer[] Init_GetPlayerWand(integer playerId, integer wand)//法杖cdStart,法杖cdEnd,法杖法术
         var wand = players[playerId].wands[wand]
         var nodes = integer[WAND_SLOT_SIZE]

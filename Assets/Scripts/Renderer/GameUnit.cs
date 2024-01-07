@@ -56,6 +56,10 @@ public class GameEntity
         position = trgPosition;
         trgTime = Time.time;
     }
+    public void OnUpdate(float deltaTime)
+    {
+        UpdateMove(deltaTime);
+    }
     public void UpdateMove(float deltaTime)
     {
         if (trgTime > Time.time)

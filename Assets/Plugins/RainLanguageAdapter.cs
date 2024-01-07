@@ -657,9 +657,13 @@ namespace RainLanguage
         {
             return (double)value.value / ratio;
         }
-        public static implicit operator Real(double value)
+        public static explicit operator Real(double value)
         {
             return new Real(value);
+        }
+        public static implicit operator Real(long value)
+        {
+            return new Real(value * ratio);
         }
 #else
         public readonly double value;

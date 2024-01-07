@@ -80,12 +80,12 @@ public struct LogicBuffEntity
 public struct LogicMagicNodeEntity
 {
     public long id;
-    public long nodeID;
+    public long configId;
     public long number;
-    public LogicMagicNodeEntity(long id, long nodeID, long number)
+    public LogicMagicNodeEntity(long id, long configId, long number)
     {
         this.id = id;
-        this.nodeID = nodeID;
+        this.configId = configId;
         this.number = number;
     }
 }
@@ -103,15 +103,17 @@ public struct LogicPlayerEntity
 {
     public long playerId;
     public string name;
-    public readonly List<long> buffs;
+    public readonly long hero;
+    public readonly long wand;
     public readonly List<long> bag;
     public readonly List<long> picks;
     public LogicWand[] wands;
-    public LogicPlayerEntity(long playerId, string name, long[] bag, long[] buffs, long[] picks)
+    public LogicPlayerEntity(long playerId, string name, long hero, long wand, long[] bag, long[] picks)
     {
         this.playerId = playerId;
         this.name = name;
-        this.buffs = new List<long>(buffs);
+        this.hero = hero;
+        this.wand = wand;
         this.bag = new List<long>(bag);
         this.picks = new List<long>(picks);
         wands = new LogicWand[3];
@@ -262,9 +264,9 @@ public class LogicWorld : IDisposable
     {
         OnRemoveBuff?.Invoke(id);
     }
-    private void NativeOnUpdateMagicNode(long id, long nodeID, long number)
+    private void NativeOnUpdateMagicNode(long id, long configId, long number)
     {
-        OnUpdateMagicNode?.Invoke(new LogicMagicNodeEntity(id, nodeID, number));
+        OnUpdateMagicNode?.Invoke(new LogicMagicNodeEntity(id, configId, number));
     }
     private void NativeOnRemvoeMagicNode(long id)
     {
@@ -342,10 +344,11 @@ public class LogicWorld : IDisposable
                     invoker.SetIntegerParameter(0, i);
                     invoker.Start(true, true);
                     var playerName = invoker.GetStringReturnValue(0);
-                    var bag = invoker.GetIntegersReturnValue(1);
-                    var buffs = invoker.GetIntegersReturnValue(2);
-                    var picks = invoker.GetIntegersReturnValue(3);
-                    players[i] = new LogicPlayerEntity(i, playerName, bag, buffs, picks);
+                    var hero = invoker.GetIntegerReturnValue(1);
+                    var wand = invoker.GetIntegerReturnValue(2);
+                    var bag = invoker.GetIntegersReturnValue(3);
+                    var picks = invoker.GetIntegersReturnValue(4);
+                    players[i] = new LogicPlayerEntity(i, playerName,hero, wand, bag,  picks);
                 }
         using (var function = kernel.FindFunction("Init_GetPlayerWand"))
             for (var pid = 0; pid < players.Length; pid++)
