@@ -25,9 +25,13 @@ public class GameMgr : MonoBehaviour
     {
         var loading = LoadingProgress.Create(v => loadingProgress = v);
         Renderer = new RendererWorld(this, loading.Split(0, .25f));
-        new Thread(() => Logic = new LogicWorld(this, loading.Split(.25f, .8f))).Start();
+        var ctrls = new long[Room.Info.members.Count + 1];
+        ctrls[0] = Room.Info.ctrlId;
+        for (int i = 0; i < Room.Info.members.Count; i++)
+            ctrls[i + 1] = Room.Info.members[i].ctrlId;
+        new Thread(() => Logic = new LogicWorld(ctrls, Room.Info.seed, loading.Split(.25f, .8f))).Start();
         while (Logic == null) yield return null;
-        Renderer.Load(Logic, loading);
+        Renderer.Load(this, Logic, loading);
     }
     private Vector2 CameraV2P(float x, float y)
     {
@@ -69,7 +73,7 @@ public class GameMgr : MonoBehaviour
         {
             UIManager.CloseAll();
             entryGame = true;
-            Logic.EntryGame();
+            Logic.EntryGame(Room);
             UIManager.Show<ActivityGameMain>("GameMain").Init(this);
         });
     }
@@ -82,20 +86,33 @@ public class GameMgr : MonoBehaviour
         Logic.Dispose();
         Logic = null;
     }
+    public long GetPlayerId(Guid id)
+    {
+        if (Room == null) return -1;
+        var info = Room.Info;
+        if (info.owner.id == id) return Logic.GetPlayerId(info.ctrlId);
+        foreach (var item in info.members)
+            if (item.player.id == id)
+                return Logic.GetPlayerId(item.ctrlId);
+        return -1;
+    }
     public bool TryGetPlayer(long playerId, out PlayerInfo info)
     {
         if (Room != null)
         {
-            if (playerId == 0)
+            var roomInfo = Room.Info;
+            var ctrl = Logic.GetCtrlId(playerId);
+            if (roomInfo.ctrlId == ctrl)
             {
-                info = Room.Info.owner;
+                info = roomInfo.owner;
                 return true;
             }
-            else if (playerId < Room.Info.members.Count + 1)
-            {
-                info = Room.Info.members[(int)playerId - 1].player;
-                return true;
-            }
+            foreach (var item in roomInfo.members)
+                if (item.ctrlId == ctrl)
+                {
+                    info = item.player;
+                    return true;
+                }
         }
         info = default;
         return false;

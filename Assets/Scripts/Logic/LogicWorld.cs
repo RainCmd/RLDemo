@@ -151,8 +151,8 @@ public struct LogicEffectMsg
 }
 public class LogicWorld : IDisposable
 {
+    public readonly long[] ctrlIds;
     private readonly Queue<string> messages = new Queue<string>();
-    public readonly GameMgr mgr;
     private readonly Queue<IDisposable> disposables = new Queue<IDisposable>();
     private Kernel kernel;
     private Function[] operFuncs;
@@ -173,15 +173,13 @@ public class LogicWorld : IDisposable
 
     public event Action<LogicFloatTextMsg> OnFloatTextMsg;
     public event Action<LogicEffectMsg> OnEffectMsg;
-    public LogicWorld(GameMgr mgr, LoadingProgress loading)
+    public LogicWorld(long[] ctrlIds, long seed, LoadingProgress loading)
     {
-        this.mgr = mgr;
-        var info = mgr.Room.Info;
-
+        this.ctrlIds = ctrlIds;
         var asset = Resources.Load<TextAsset>("RainLibraries/RLDemo.lib");
         var lib = RainLib.Create(asset.bytes);
         var libs = new RainLib[] { lib };
-        var parameter = new StartupParameter(libs, info.seed, 0xff, 0xff,
+        var parameter = new StartupParameter(libs, seed, 0xff, 0xff,
             OnReferenceEntity, OnReleaseEntity,
             LoadLibrary, LoadCaller, OnExceptionExit, LoadProgramDatabase);
         kernel = RainLanguageAdapter.CreateKernel(parameter);
@@ -207,24 +205,9 @@ public class LogicWorld : IDisposable
         GameLog.Show(Color.white, msg);
         EnMsg(msg);
     }
-    private long GetCtrlCount()
+    private long[] GetCtrls()
     {
-        return mgr.Room.Info.members.Count + 1;
-    }
-    private long GetMaxCtrlID()
-    {
-        var ctrlId = mgr.Room.Info.ctrlId;
-
-        return ctrlId;
-    }
-    private CtrlInfo GetCtrl(long idx)
-    {
-        if (idx > 0)
-        {
-            var member = mgr.Room.Info.members[(int)idx - 1];
-            return new CtrlInfo(member.ctrlId, member.player.name);
-        }
-        else return new CtrlInfo(mgr.Room.Info.ctrlId, mgr.Room.Info.owner.name);
+        return ctrlIds;
     }
     private long Config_GetMagicNodeCount()
     {
@@ -379,8 +362,16 @@ public class LogicWorld : IDisposable
                     }
         return players;
     }
-    public LogicInitResult LoadGameData()
+    public LogicInitResult LoadGameData(CtrlInfo[] infos)
     {
+        using (var function = kernel.FindFunction("Init_SetPlayerName"))
+            foreach (var info in infos)
+                using (var invoker = function.CreateInvoker())
+                {
+                    invoker.SetIntegerParameter(0, info.ctrlId);
+                    invoker.SetStringParameter(1, info.name);
+                    invoker.Start(true, true);
+                }
         var initResult = this.initResult = new LogicInitResult();
         using (var function = kernel.FindFunction("LoadGameData"))
         using (var invoker = function.CreateInvoker())
@@ -390,7 +381,17 @@ public class LogicWorld : IDisposable
         return initResult;
     }
     #endregion
-
+    public long GetPlayerId(long ctrlId)
+    {
+        for (var i = 0; i < ctrlIds.Length; i++)
+            if (ctrlIds[i] == ctrlId)
+                return i;
+        return -1;
+    }
+    public long GetCtrlId(long playerId)
+    {
+        return ctrlIds[playerId];
+    }
     private void InitOperFuncs()
     {
         operFuncs = new Function[typeof(OperatorType).GetEnumValues().Length];
@@ -441,23 +442,22 @@ public class LogicWorld : IDisposable
         msg = null;
         return false;
     }
-    public void EntryGame()
+    public void EntryGame(IRoom room)
     {
         using (var onEntryGame = kernel.FindFunction("GameEntry"))
         using (var onEntryGameInvoker = onEntryGame.CreateInvoker())
             onEntryGameInvoker.Start(true, false);
 
-        new Thread(LogicLoop).Start();
+        new Thread(() => LogicLoop(room)).Start();
     }
-    private void LogicLoop()
+    private void LogicLoop(IRoom room)
     {
         var step = TimeSpan.FromMilliseconds(1000 / Config.LFPS).TotalMilliseconds;
         var start = DateTime.Now;
-        while (true)
+        while (room.State != RoomState.Invalid)
         {
             var kernel = this.kernel;
-            var room = mgr.Room;
-            if (kernel == null || room == null) break;
+            if (kernel == null) break;
             var operators = room.EntryNextFrame();
             if (operators != null)
             {
@@ -525,9 +525,7 @@ public class LogicWorld : IDisposable
     {
         RegistFunction("Debug", "Debug");
 
-        RegistFunction("InitGame.GetControlCount", "GetCtrlCount");
-        RegistFunction("InitGame.GetMaxCtrlID", "GetMaxCtrlID");
-        RegistFunction("InitGame.GetControl", "GetCtrl");
+        RegistFunction("InitGame.GetControls", "GetCtrls");
         RegistFunction("GameConfig.ConfigMagicNode_GetConfigCount", "Config_GetMagicNodeCount");
         RegistFunction("GameConfig.ConfigMagicNode_GetConfig", "Config_GetMagicNode");
         RegistFunction("GameConfig.ConfigEntity_GetConfigCount", "Config_GetEntityConfigCount");

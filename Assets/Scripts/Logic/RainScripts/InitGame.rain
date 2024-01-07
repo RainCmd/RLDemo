@@ -27,22 +27,23 @@ namespace InitGame
     public OperEquip(integer ctrlId, integer trg, integer weapon, integer slot)
         players[ctrlId2pId[ctrlId]].OnEquip(trg, weapon, slot)
     
-    space native integer GetControlCount()
-    space native integer GetMaxCtrlID()
-    space native integer, string GetControl(integer idx)
+    space native integer[] GetControls()
     //逻辑世界初始化
     public GameMain()
         LoadMagicNodeConfig()
         LoadEntityConfig()
         LoadUnitConfig()
 
-        var cnt = GetControlCount()
-        ctrlId2pId = integer[GetMaxCtrlID()]
-        players = Player[cnt]
-        for var i = 0; i < cnt; i++
-            var ctrlId, var name = GetControl(i)
-            ctrlId2pId[ctrlId] = i
-            players[i] = Player(i, name)
+        var ctrls = GetControls()
+        var maxCtrlId = 0
+        for var i = 0; i < ctrls.GetLength(); i++
+            if ctrls[i] > maxCtrlId
+                maxCtrlId = ctrls[i]
+        ctrlId2pId = integer[maxCtrlId + 1]
+        players = Player[ctrls.GetLength()]
+        for var i = 0; i < ctrls.GetLength(); i++
+            ctrlId2pId[ctrls[i]] = i
+            players[i] = Player(i)
             players[i].hero = CreateUnit('U_hero', i, real3(0, 0, 1), GetRandomWorldPosition())
 
     //逻辑更新开始前
@@ -78,7 +79,8 @@ namespace InitGame
                 if node.number != 0
                     OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
 
-
+    public Init_SetPlayerName(integer ctrlId, string name)
+        players[ctrlId2pId[ctrlId]].name = name
     public integer Init_GetPlayerCount()
         return players.GetLength()
     public string, integer[], integer[], integer[] Init_GetPlayer(integer id)//控制id,玩家名,背包列表,buff列表,拾取列表
