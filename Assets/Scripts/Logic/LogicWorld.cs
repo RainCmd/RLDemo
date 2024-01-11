@@ -139,18 +139,6 @@ public struct LogicFloatTextMsg
         this.text = text;
     }
 }
-public struct LogicEffectMsg
-{
-    public Real3 position;
-    public Real3 forward;
-    public string resource;
-    public LogicEffectMsg(Real3 position, Real3 forward, string resource)
-    {
-        this.position = position;
-        this.forward = forward;
-        this.resource = resource;
-    }
-}
 public class LogicWorld : IDisposable
 {
     public readonly long[] ctrlIds;
@@ -174,7 +162,6 @@ public class LogicWorld : IDisposable
     public event Action<long, long> OnPlayerWandChanged;
 
     public event Action<LogicFloatTextMsg> OnFloatTextMsg;
-    public event Action<LogicEffectMsg> OnEffectMsg;
     public LogicWorld(long[] ctrlIds, long seed, LoadingProgress loading)
     {
         this.ctrlIds = ctrlIds;
@@ -296,10 +283,6 @@ public class LogicWorld : IDisposable
     private void ShowFloatText(Real3 position, Real3 color, string value)
     {
         OnFloatTextMsg?.Invoke(new LogicFloatTextMsg(position, color, value));
-    }
-    private void ShowEffect(Real3 position, Real3 forward, string resource)
-    {
-        OnEffectMsg?.Invoke(new LogicEffectMsg(position, forward, resource));
     }
 
     private void NativeOnLoadGameEntity(long id, string resource, string anim, Real3 forward, Real3 position)
@@ -552,6 +535,5 @@ public class LogicWorld : IDisposable
         RegistFunction("OnPlayerWandChanged", "NativeOnPlayerWandChanged");
 
         RegistFunction("ShowFloatText", "ShowFloatText");
-        RegistFunction("ShowEffect", "ShowEffect");
     }
 }

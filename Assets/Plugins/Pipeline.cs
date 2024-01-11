@@ -1,17 +1,18 @@
 ﻿public class Pipeline<T>
 {
     private readonly T[] values;
-    private long start, end;
-    public Pipeline(long size)
+    private long start, end, mask;
+    public Pipeline(int level)
     {
-        values = new T[size];
+        values = new T[1 << level];
         start = end = 0;
+        mask = values.Length - 1;
     }
     public bool En(T value)
     {
         if (start < end - values.Length)
         {
-            values[end++] = value;
+            values[(end++) & mask] = value;
             return true;
         }
         return false;
@@ -20,7 +21,7 @@
     {
         if (start < end)
         {
-            value = values[start++];
+            value = values[(start++) & mask];
             return true;
         }
         value = default;

@@ -17,7 +17,6 @@ public class RendererWorld : IDisposable
     private readonly Dictionary<long, GameUnit> units = new Dictionary<long, GameUnit>();
     public long LocalPlayerId { get; private set; }
     #region logic=>renderer缓冲区
-    private readonly Pipeline<LogicEffectMsg> effectMsgPipleline = new Pipeline<LogicEffectMsg>(16);
     private readonly Pipeline<LogicFloatTextMsg> floatTextMsgPipeline = new Pipeline<LogicFloatTextMsg>(4);
     private enum L2RType
     {
@@ -119,7 +118,6 @@ public class RendererWorld : IDisposable
                 world.OnPlayerWandChanged += OnPlayerWandChanged;
 
                 world.OnFloatTextMsg += OnFloatTextMsg;
-                world.OnEffectMsg += OnEffectMsg;
             }
             loading.Progress = 1;
         }
@@ -128,7 +126,6 @@ public class RendererWorld : IDisposable
     public void Unload()
     {
         if (World == null) return;
-        World.OnEffectMsg -= OnEffectMsg;
         World.OnFloatTextMsg -= OnFloatTextMsg;
 
         World.OnPlayerWandChanged -= OnPlayerWandChanged;
@@ -151,7 +148,6 @@ public class RendererWorld : IDisposable
         foreach (var item in entities) item.Value.OnRemove(true);
         entities.Clear();
         floatTextMsgPipeline.Clear();
-        effectMsgPipleline.Clear();
         //todo 清理
     }
     private void EnL2REvent(L2RData data)
@@ -159,10 +155,6 @@ public class RendererWorld : IDisposable
         lock (l2RDatas) l2RDatas.Enqueue(data);
     }
     #region EntityEvents
-    private void OnEffectMsg(LogicEffectMsg msg)
-    {
-        effectMsgPipleline.En(msg);
-    }
     private void OnFloatTextMsg(LogicFloatTextMsg msg)
     {
         floatTextMsgPipeline.En(msg);
@@ -306,10 +298,6 @@ public class RendererWorld : IDisposable
     public void Update(float deltaTime)
     {
         mapBlock.OnRendererUpdate();
-        while (effectMsgPipleline.De(out var effectMsg))
-        {
-            //创建特效
-        }
         while (floatTextMsgPipeline.De(out var floatTextMsg))
         {
             var position = new UnityEngine.Vector3((float)floatTextMsg.position.x, (float)floatTextMsg.position.y, (float)floatTextMsg.position.z);
