@@ -40,11 +40,11 @@ public class ActivityGameMainNpcFloatInfo : MonoBehaviour
                 break;
         }
     }
-    private void OnLifeStateChanged(GameEntityState state)
+    private void OnLifeStateChanged(GameUnitState state)
     {
         lifebar.State = state;
     }
-    private void OnManaStateChanged(GameEntityState state)
+    private void OnManaStateChanged(GameUnitState state)
     {
         manabar.State = state;
     }

@@ -5,8 +5,8 @@ using UnityEngine.UI;
 public class StateBar : Image
 {
     [SerializeField]
-    private GameEntityState state;
-    public GameEntityState State
+    private GameUnitState state;
+    public GameUnitState State
     {
         get { return state; }
         set

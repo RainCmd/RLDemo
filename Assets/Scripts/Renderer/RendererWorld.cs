@@ -15,6 +15,8 @@ public class RendererWorld : IDisposable
     private readonly MapBlockRenderer mapBlock;
     private readonly Dictionary<long, GameEntity> entities = new Dictionary<long, GameEntity>();
     private readonly Dictionary<long, GameUnit> units = new Dictionary<long, GameUnit>();
+    public readonly Dictionary<long, LogicBuffEntity> buffs = new Dictionary<long, LogicBuffEntity>();
+    public readonly Dictionary<long, LogicMagicNodeEntity> magicNodes = new Dictionary<long, LogicMagicNodeEntity>();
     public long LocalPlayerId { get; private set; }
     #region logic=>renderer缓冲区
     private readonly Pipeline<LogicFloatTextMsg> floatTextMsgPipeline = new Pipeline<LogicFloatTextMsg>(4);

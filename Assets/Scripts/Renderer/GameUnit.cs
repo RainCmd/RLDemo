@@ -2,19 +2,19 @@
 using UnityEngine;
 
 [Serializable]
-public struct GameEntityState
+public struct GameUnitState
 {
     public float cur;
     public float max;
     public bool Full => cur >= max;
-    public GameEntityState(float cur, float max)
+    public GameUnitState(float cur, float max)
     {
         this.cur = cur;
         this.max = max;
     }
     public override bool Equals(object obj)
     {
-        return obj is GameEntityState state &&
+        return obj is GameUnitState state &&
                cur == state.cur &&
                max == state.max;
     }
@@ -26,63 +26,11 @@ public struct GameEntityState
         return hashCode;
     }
 }
-public class GameEntity
-{
-    public event Action OnOwnerChanged;
-    public long id;
-    public long owner;
-    private Vector3 forward;
-    private Vector3 trgForward;
-    private Vector3 position;
-    private Vector3 trgPosition;
-    private float trgTime;
-    public Vector3 Position
-    {
-        get
-        {
-            return position;
-        }
-    }
-    public void UpdateTransform(Vector3 forward, Vector3 position, bool immediately)
-    {
-        trgForward = forward;
-        trgPosition = position;
-        trgTime = Time.time + 1f / Config.LFPS;
-        if (immediately) ImmediatelyTransform();
-    }
-    private void ImmediatelyTransform()
-    {
-        forward = trgForward;
-        position = trgPosition;
-        trgTime = Time.time;
-    }
-    public void OnUpdate(float deltaTime)
-    {
-        UpdateMove(deltaTime);
-    }
-    public void UpdateMove(float deltaTime)
-    {
-        if (trgTime > Time.time)
-        {
-            var t = deltaTime / (deltaTime + trgTime - Time.time);
-            forward = Vector3.Lerp(forward, trgForward, t);
-            position = Vector3.Lerp(position, trgPosition, t);
-        }
-    }
-    public virtual void PlayAnimation(string animation)
-    {
-
-    }
-    public void OnRemove(bool immediately)
-    {
-
-    }
-}
 public class GameUnit
 {
     public GameEntity entity;
-    public event Action<GameEntityState> OnLifeStateChanged, OnManaStateChanged;
-    private GameEntityState life, mana;
+    public event Action<GameUnitState> OnLifeStateChanged, OnManaStateChanged;
+    private GameUnitState life, mana;
     public UnitType UnitType { get; private set; }
     public virtual bool VisableFloatInfo
     {
@@ -104,7 +52,7 @@ public class GameUnit
             return entity.Position + Vector3.up;
         }
     }
-    public GameEntityState Life
+    public GameUnitState Life
     {
         get { return life; }
         set
@@ -114,7 +62,7 @@ public class GameUnit
             if (changed) OnLifeStateChanged?.Invoke(value);
         }
     }
-    public GameEntityState Mana
+    public GameUnitState Mana
     {
         get { return mana; }
         set
@@ -128,8 +76,8 @@ public class GameUnit
     {
         this.entity = entity;
         UnitType = unit.type;
-        life = new GameEntityState((float)unit.hp, (float)unit.maxHP);
-        mana = new GameEntityState((float)unit.mp, (float)unit.maxMP);
+        life = new GameUnitState((float)unit.hp, (float)unit.maxHP);
+        mana = new GameUnitState((float)unit.mp, (float)unit.maxMP);
     }
     public void OnRemove()
     {
