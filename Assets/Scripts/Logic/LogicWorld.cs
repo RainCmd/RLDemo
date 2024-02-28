@@ -146,20 +146,7 @@ public class LogicWorld : IDisposable
     private readonly Queue<IDisposable> disposables = new Queue<IDisposable>();
     private Kernel kernel;
     private Function[] operFuncs;
-    public event Action<LogicEntity> OnEntityChanged;
-    public event Action<long, bool> OnEntityRemoved;
-    public event Action<LogicUnitEntity> OnUpdateUnitEntity;
-    public event Action<long> OnRemoveUnitEntity;
-    public event Action<long, long, bool> OnUnitBuffChanged;
-    public event Action<LogicBuffEntity> OnUpdateBuff;
-    public event Action<long> OnRemoveBuff;
-    public event Action<LogicMagicNodeEntity> OnUpdateMagicNode;
-    public event Action<long> OnRemvoeMagicNode;
-    public event Action<long, long, bool> OnPlayerBagMagicNodeChanged;
-    public event Action<long, long, long, long> OnPlayerWandMagicNodeChanged;
-    public event Action<long, long, LogicTimeSpan> OnPlayerWandCDUpdate;
-    public event Action<long, long, bool> OnPlayerMagicNodePickListChanged;
-    public event Action<long, long> OnPlayerWandChanged;
+    public event Action<L2RData> OnRendererMsg;
 
     public event Action<LogicFloatTextMsg> OnFloatTextMsg;
     public LogicWorld(long[] ctrlIds, long seed, LoadingProgress loading)
@@ -225,59 +212,59 @@ public class LogicWorld : IDisposable
 
     private void NativeOnUpdateEntity(long id, string resource, string anim, Real3 forward, Real3 position)
     {
-        OnEntityChanged?.Invoke(new LogicEntity(id, resource, anim, forward, position));
+        OnRendererMsg?.Invoke(L2RData.EntityChanged(new LogicEntity(id, resource, anim, forward, position)));
     }
     private void NativeOnRemoveEntity(long id, bool immediately)
     {
-        OnEntityRemoved?.Invoke(id, immediately);
+        OnRendererMsg?.Invoke(L2RData.EntityRemoved(id, immediately));
     }
     private void NativeOnUpdateUnitEntity(long id, long player, long type, Real hp, Real maxHP, Real mp, Real maxMP)
     {
-        OnUpdateUnitEntity?.Invoke(new LogicUnitEntity(id, player, (UnitType)type, hp, maxHP, mp, maxMP));
+        OnRendererMsg?.Invoke(L2RData.UpdateUnitEntity(new LogicUnitEntity(id, player, (UnitType)type, hp, maxHP, mp, maxMP)));
     }
     private void NativeOnRemoveUnitEntity(long id)
     {
-        OnRemoveUnitEntity?.Invoke(id);
+        OnRendererMsg?.Invoke(L2RData.RemoveUnitEntity(id));
     }
     private void NativeOnUnitBuffChanged(long unitId, long buffId, bool addition)
     {
-        OnUnitBuffChanged?.Invoke(unitId, buffId, addition);
+        OnRendererMsg?.Invoke(L2RData.UnitBuffChanged(unitId, buffId, addition));
     }
     private void NativeOnUpdateBuff(long id, long icon, long number, Real start, Real end)
     {
-        OnUpdateBuff?.Invoke(new LogicBuffEntity(id, icon, number, new LogicTimeSpan(start, end)));
+        OnRendererMsg?.Invoke(L2RData.UpdateBuffEntity(new LogicBuffEntity(id, icon, number, new LogicTimeSpan(start, end))));
     }
     private void NativeOnRemoveBuff(long id)
     {
-        OnRemoveBuff?.Invoke(id);
+        OnRendererMsg?.Invoke(L2RData.RemoveBuffEntity(id));
     }
     private void NativeOnUpdateMagicNode(long id, long configId, long number)
     {
-        OnUpdateMagicNode?.Invoke(new LogicMagicNodeEntity(id, configId, number));
+        OnRendererMsg?.Invoke(L2RData.UpdateMagicNodeEntity(new LogicMagicNodeEntity(id, configId, number)));
     }
     private void NativeOnRemvoeMagicNode(long id)
     {
-        OnRemvoeMagicNode?.Invoke(id);
+        OnRendererMsg?.Invoke(L2RData.RemoveMagicNodeEntity(id));
     }
     private void NativeOnPlayerBagMagicNodeChanged(long player, long nodeID, bool addition)
     {
-        OnPlayerBagMagicNodeChanged?.Invoke(player, nodeID, addition);
+        OnRendererMsg?.Invoke(L2RData.PlayerBagMagicNodeChanged(player, nodeID, addition));
     }
     private void NativeOnPlayerWandMagicNodeChanged(long player, long wand, long nodeID, long slot)
     {
-        OnPlayerWandMagicNodeChanged?.Invoke(player, wand, nodeID, slot);
+        OnRendererMsg?.Invoke(L2RData.PlayerWandMagicNodeChanged(player, wand, nodeID, slot));
     }
     private void NativeOnPlayerWandCDUpdate(long player, long wand, Real start, Real end)
     {
-        OnPlayerWandCDUpdate?.Invoke(player, wand, new LogicTimeSpan(start, end));
+        OnRendererMsg?.Invoke(L2RData.PlayerWandCDUpdate(player, wand, new LogicTimeSpan(start, end)));
     }
     private void NativeOnPlayerMagicNodePickListChanged(long player, long nodeID, bool addition)
     {
-        OnPlayerMagicNodePickListChanged?.Invoke(player, nodeID, addition);
+        OnRendererMsg?.Invoke(L2RData.PlayerMagicNodePickListChanged(player, nodeID, addition));
     }
     private void NativeOnPlayerWandChanged(long player, long wand)
     {
-        OnPlayerWandChanged?.Invoke(player, wand);
+        OnRendererMsg?.Invoke(L2RData.PlayerWandChanged(player, wand));
     }
 
     private void ShowFloatText(Real3 position, Real3 color, string value)
