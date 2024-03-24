@@ -45,7 +45,7 @@ public class LogicConfigEditor : EditorWindow
         if (type.IsEnum)
         {
             if (value == null) value = type.GetEnumValues().GetValue(0);
-            return EditorGUILayout.EnumFlagsField(label, (Enum)value);
+            return EditorGUILayout.EnumPopup(label, (Enum)value);
         }
         if (label != null) EditorGUILayout.LabelField(label);
         if (value == null) return Activator.CreateInstance(type);
@@ -120,7 +120,7 @@ public class LogicConfigEditor : EditorWindow
             {
                 if (!f) fold.Add(i);
                 EditorGUI.indentLevel++;
-                Draw(null, list[i], type);
+                list[i] = Draw(null, list[i], type);
                 EditorGUI.indentLevel--;
             }
             else if (f) fold.Remove(i);
@@ -133,7 +133,7 @@ public class LogicConfigEditor : EditorWindow
     }
     private static void ShowWindow<T>(string path)
     {
-        if (!File.Exists(Application.streamingAssetsPath + path))
+        if (!File.Exists(LogicConfig.LocalPathToGlobalPath(path)))
         {
             LogicConfig.Save(path, new List<T>());
             AssetDatabase.Refresh();

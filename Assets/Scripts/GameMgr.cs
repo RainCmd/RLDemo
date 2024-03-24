@@ -7,8 +7,7 @@ public class GameMgr : MonoBehaviour
 {
     private bool entryGame = false;
     public event Action OnRenderLateUpdate;
-    public Camera GameCamera { get; private set; }
-    public Rect CameraArea { get; private set; }
+    public CameraMgr CameraMgr { get; private set; }
     public IRoom Room { get; private set; }
     public LogicWorld Logic { get; private set; }
     public RendererWorld Renderer { get; private set; }
@@ -33,13 +32,6 @@ public class GameMgr : MonoBehaviour
         while (Logic == null) yield return null;
         Renderer.Load(this, Logic, loading);
     }
-    private Vector2 CameraV2P(float x, float y)
-    {
-        var r = GameCamera.ViewportPointToRay(new Vector3(x, y));
-        var d = r.direction;
-        d.y = 0;
-        return r.origin + r.direction * (d.magnitude / r.direction.y);
-    }
     private void Update()
     {
         if (Room == null) return;
@@ -49,16 +41,7 @@ public class GameMgr : MonoBehaviour
         }
         if (entryGame)
         {
-            if (GameCamera)
-            {
-                var p00 = CameraV2P(0, 0);
-                var p01 = CameraV2P(0, 1);
-                var p11 = CameraV2P(1, 1);
-                var p10 = CameraV2P(1, 0);
-                var max = Vector2.Max(Vector2.Max(p00, p01), Vector2.Max(p11, p10));
-                var min = Vector2.Min(Vector2.Min(p00, p01), Vector2.Min(p11, p10));
-                CameraArea = new Rect(min, max - min);
-            }
+            CameraMgr?.Update();
             Renderer.Update(Time.deltaTime);
         }
         else Room.UpdateLoading(loadingProgress);

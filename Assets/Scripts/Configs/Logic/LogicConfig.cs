@@ -18,9 +18,13 @@ public static class LogicConfig
         entities = Load<ConfigEntity>(ConfigEntity.Path).ToArray();
         units = Load<ConfigUnit>(ConfigUnit.Path).ToArray();
     }
+    public static string LocalPathToGlobalPath(string path)
+    {
+        return Application.dataPath + "/Resources/" + path;
+    }
     public static IList Load(string path)
     {
-        path = Application.streamingAssetsPath + path;
+        path = LocalPathToGlobalPath(path);
         if (File.Exists(path))
         {
             using (var stream = File.OpenRead(path))
@@ -38,7 +42,7 @@ public static class LogicConfig
 #if UNITY_EDITOR
     public static void Save(string path, IList cfgs)
     {
-        path = Application.streamingAssetsPath + path;
+        path = LocalPathToGlobalPath(path);
         using (var stream = new FileStream(path, FileMode.Create))
         {
             var bf = new BinaryFormatter();

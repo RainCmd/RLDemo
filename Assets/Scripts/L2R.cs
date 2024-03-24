@@ -1,9 +1,13 @@
-﻿public enum L2RType
+﻿using RainLanguage;
+
+public enum L2RType
 {
+    PlayerHeroChanged,
     PlayerWandChanged,
     PlayerMagicNodePickListChanged,
     PlayerWandCDUpdate,
     EntityChanged,
+    EntityTransformChanged,
     EntityRemoved,
     UpdateUnitEntity,
     RemoveUnitEntity,
@@ -19,6 +23,7 @@ public struct L2RData
 {
     public L2RType type;
     public long player;
+    public long hero;
     public long wand;
     public long slot;
     public LogicTimeSpan cd;
@@ -28,6 +33,14 @@ public struct L2RData
     public LogicUnitEntity unit;
     public LogicBuffEntity buff;
     public bool addition;
+    public static L2RData PlayerHeroChanged(long player, long hero)
+    {
+        return new L2RData()
+        {
+            player = player,
+            hero = hero
+        };
+    }
     public static L2RData PlayerWandChanged(long player, long wand)
     {
         return new L2RData()
@@ -66,6 +79,15 @@ public struct L2RData
             addition = true
         };
     }
+    public static L2RData EntityTransformChanged(long id, Real3 forward, Real3 position, bool immediately)
+    {
+        return new L2RData()
+        {
+            type = L2RType.EntityTransformChanged,
+            entity = new LogicEntity(id, forward, position),
+            immediately = immediately
+        };
+    }
     public static L2RData EntityRemoved(long id, bool immediately)
     {
         return new L2RData()
@@ -81,8 +103,7 @@ public struct L2RData
         return new L2RData()
         {
             type = L2RType.UpdateUnitEntity,
-            unit = unit,
-            addition = true
+            unit = unit
         };
     }
     public static L2RData RemoveUnitEntity(long id)
@@ -90,8 +111,7 @@ public struct L2RData
         return new L2RData()
         {
             type = L2RType.RemoveUnitEntity,
-            unit = new LogicUnitEntity() { id = id },
-            addition = false
+            unit = new LogicUnitEntity() { id = id }
         };
     }
     public static L2RData UnitBuffChanged(long unit, long buff, bool addition)
@@ -109,8 +129,7 @@ public struct L2RData
         return new L2RData()
         {
             type = L2RType.UpdateBuffEntity,
-            buff = buff,
-            addition = true
+            buff = buff
         };
     }
     public static L2RData RemoveBuffEntity(long id)
@@ -118,8 +137,7 @@ public struct L2RData
         return new L2RData()
         {
             type = L2RType.RemoveBuffEntity,
-            buff = new LogicBuffEntity() { id = id },
-            addition = false
+            buff = new LogicBuffEntity() { id = id }
         };
     }
     public static L2RData UpdateMagicNodeEntity(LogicMagicNodeEntity node)
@@ -127,8 +145,7 @@ public struct L2RData
         return new L2RData()
         {
             type = L2RType.UpdateMagicNodeEntity,
-            node = node,
-            addition = true
+            node = node
         };
     }
     public static L2RData RemoveMagicNodeEntity(long id)
@@ -136,8 +153,7 @@ public struct L2RData
         return new L2RData()
         {
             type = L2RType.RemoveMagicNodeEntity,
-            node = new LogicMagicNodeEntity() { id = id },
-            addition = false
+            node = new LogicMagicNodeEntity() { id = id }
         };
     }
     public static L2RData PlayerBagMagicNodeChanged(long player, long node, bool addition)

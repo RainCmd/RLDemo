@@ -7,16 +7,16 @@ public class ActivityGameMainPlayerFloatInfo : ActivityGameMainNpcFloatInfo
     {
         base.Init(manager, unit);
         OnOwnerChanged();
-        unit.entity.OnOwnerChanged += OnOwnerChanged;
+        unit.OnOwnerChanged += OnOwnerChanged;
     }
     public override void Deinit()
     {
-        Unit.entity.OnOwnerChanged -= OnOwnerChanged;
+        Unit.OnOwnerChanged -= OnOwnerChanged;
         base.Deinit();
     }
     private void OnOwnerChanged()
     {
-        if (Manager.TryGetPlayer(Unit.entity.owner, out var info))
+        if (Manager.TryGetPlayer(Unit.owner, out var info))
         {
             icon.gameObject.SetActive(true);
             icon.sprite = Config.PlayerHeadIconList[info.headIcon];

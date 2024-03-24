@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
@@ -25,17 +26,26 @@ public struct GameUnitState
         hashCode = hashCode * -1521134295 + max.GetHashCode();
         return hashCode;
     }
+    public override string ToString()
+    {
+        return cur.ToString() + "/" + max.ToString();
+    }
 }
 public class GameUnit
 {
     public GameEntity entity;
+    public long owner;
+    public event Action OnOwnerChanged;
     public event Action<GameUnitState> OnLifeStateChanged, OnManaStateChanged;
+    public HashSet<long> buffs = new HashSet<long>();
     private GameUnitState life, mana;
+    public event Action OnUpdate;
     public UnitType UnitType { get; private set; }
-    public virtual bool VisableFloatInfo
+    public bool VisableFloatInfo
     {
         get
         {
+            if (!entity.Visiable) return false;
             switch (UnitType)
             {
                 case UnitType.Player: return true;
@@ -45,7 +55,7 @@ public class GameUnit
             return false;
         }
     }
-    public virtual Vector3 FloatInfoPosition
+    public Vector3 FloatInfoPosition
     {
         get
         {
@@ -72,12 +82,17 @@ public class GameUnit
             if (changed) OnManaStateChanged?.Invoke(value);
         }
     }
-    public void Init(GameEntity entity, LogicUnitEntity unit)
+    public GameUnit(GameEntity entity, LogicUnitEntity unit)
     {
         this.entity = entity;
+        Update(unit);
+    }
+    public void Update(LogicUnitEntity unit)
+    {
         UnitType = unit.type;
         life = new GameUnitState((float)unit.hp, (float)unit.maxHP);
         mana = new GameUnitState((float)unit.mp, (float)unit.maxMP);
+        OnUpdate?.Invoke();
     }
     public void OnRemove()
     {

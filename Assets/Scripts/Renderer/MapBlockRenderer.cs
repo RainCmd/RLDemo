@@ -123,11 +123,11 @@ public class MapBlockRenderer : IDisposable
         private static readonly UIVertex[] quad = new UIVertex[4];
         private static readonly List<int> splatIdxs = new List<int>();
     }
-    private readonly GameMgr mgr;
+    private readonly CameraMgr mgr;
     private readonly Material[] materials;
     private readonly BlockInfo[,] blocks;
     private int lastMinX = 0, lastMinY = 0, lastMaxX = 0, lastMaxY = 0;
-    public MapBlockRenderer(GameMgr mgr, LoadingProgress loading)
+    public MapBlockRenderer(CameraMgr mgr, LoadingProgress loading)
     {
         this.mgr = mgr;
         var blocks = Config.MapBlocks;

@@ -1,6 +1,7 @@
 import kernel.Math
 
 internal native OnUpdateEntity(integer id, string resource, string anim, real3 forward, real3 position)
+internal native OnUpdateEntityTransform(integer id, real3 forward, real3 position, bool immediately)
 internal native OnRemoveEntity(integer id, bool immediately)
 
 public GameEntity[], integer Add(GameEntity[] values, integer count, GameEntity value)
@@ -49,13 +50,16 @@ public class GameEntity
     public Move(real3 position)
         this->Move(forward, position)
     public Move(real3 forward, real3 position)
+        this->Move(forward, position, false)
+    public Move(real3 forward, real3 position, bool immediately)
         if position != this.position
             area->Move(this, position.xy)
         this.forward = forward
         this.position = position
+        OnUpdateEntityTransform(GetHandleID(), forward, position, immediately)
         this->OnUpdate()
     public ShowAnim(string anim)
         this.anim = anim
         this->OnUpdate()
     private OnUpdate()
-        OnUpdateEntity(this.GetHandleID(), resource, anim, forward, position)
+        OnUpdateEntity(GetHandleID(), resource, anim, forward, position)

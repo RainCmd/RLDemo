@@ -24,5 +24,5 @@ public struct ConfigMagicNode
     public long number;//可以使用的次数
     public string desc;
     public string logic;
-    public const string Path = "/Configs/MagicNode.cfg";
+    public const string Path = "/Configs/Logic/MagicNode.cfg";
 }

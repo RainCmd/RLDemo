@@ -1,9 +1,13 @@
-﻿using System;
+﻿using RainLanguage;
+using System;
 using UnityEngine;
-using UnityEngine.Analytics;
 
 public static class Tool
 {
+    public static string Format(this string str, params object[] args)
+    {
+        return string.Format(str, args);
+    }
     public static Color GetDelayColor(int delay)
     {
         if (delay <= 0) return Color.clear;
@@ -20,5 +24,13 @@ public static class Tool
     public static int GetDelay(long ticks)
     {
         return (int)new TimeSpan(Math.Max(DateTime.Now.Ticks - ticks, 0)).TotalMilliseconds;
+    }
+    public static Vector2 ToVector(this Real2 vector)
+    {
+        return new Vector2((float)vector.x, (float)vector.y);
+    }
+    public static Vector3 ToVector(this Real3 vector)
+    {
+        return new Vector3((float)vector.x, (float)vector.y, (float)vector.z);
     }
 }

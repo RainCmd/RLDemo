@@ -6,12 +6,15 @@ using UnityEngine.UI;
 
 public class ActivityGameMainRocker : MonoBehaviour
 {
-    public float limitDistance = 300;
-    public RectTransform rocker;
-    public Image arrow;
+    [SerializeField]
+    private float limitDistance = 300;
+    [SerializeField]
+    private RectTransform rocker;
+    [SerializeField]
+    private Image arrow;
     private RectTransform rt;
     private EventTrigger trigger;
-    public Action<float, float> OnRock;
+    public event Action<float, float> OnRock;
     private void AddEvent(EventTriggerType type, UnityAction<BaseEventData> action)
     {
         var entry = new EventTrigger.Entry();

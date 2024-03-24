@@ -21,3 +21,7 @@ MonoBehaviour:
     extend: 1
     weight: 7
     cohesion: 0.85
+  - splat: {fileID: 2800000, guid: e7a1b803fd483c64093609a10d55e268, type: 3}
+    extend: 1
+    weight: 1
+    cohesion: 0.85

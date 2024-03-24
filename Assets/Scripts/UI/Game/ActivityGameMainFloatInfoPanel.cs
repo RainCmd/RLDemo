@@ -29,7 +29,7 @@ public class ActivityGameMainFloatInfoPanel : MonoBehaviour
     }
     public void ShowFloatText(FloatText text)
     {
-        if (TryGetViewportPoint(text.Position, out var vp))
+        if (main.Manager.CameraMgr.TryGetViewportPoint(text.Position, out var vp))
         {
             var ft = floatTextPool.Count > 0 ? floatTextPool.Pop() : Instantiate(floatTextPrefab, transform).GetComponent<ActivityGameMainFloatText>();
             ft.gameObject.SetActive(true);
@@ -61,11 +61,6 @@ public class ActivityGameMainFloatInfoPanel : MonoBehaviour
             npcPool.Push(npc);
             npcInfos.Remove(entity);
         }
-    }
-    private bool TryGetViewportPoint(Vector3 worldPosition, out Vector3 viewportPoint)
-    {
-        viewportPoint = main.Manager.GameCamera.WorldToViewportPoint(worldPosition);
-        return viewportPoint.x > 0 && viewportPoint.x < 1 && viewportPoint.y > 0 && viewportPoint.y < 1;
     }
     private void UpdatePosition(RectTransform rt, Vector2 viewPosition)
     {
@@ -109,7 +104,7 @@ public class ActivityGameMainFloatInfoPanel : MonoBehaviour
             }
             else
             {
-                if (unit.VisableFloatInfo && TryGetViewportPoint(unit.FloatInfoPosition, out var vp)) ShowEntity(unit, vp);
+                if (unit.VisableFloatInfo && main.Manager.CameraMgr.TryGetViewportPoint(unit.FloatInfoPosition, out var vp)) ShowEntity(unit, vp);
                 else Recycle(id);
                 return false;
             }
@@ -117,7 +112,7 @@ public class ActivityGameMainFloatInfoPanel : MonoBehaviour
         removes.Clear();
         floatTexts.RemoveAll(text =>
         {
-            if (TryGetViewportPoint(text.FloatText.Position, out var vp))
+            if (main.Manager.CameraMgr.TryGetViewportPoint(text.FloatText.Position, out var vp))
             {
                 UpdatePosition(text.rectTransform, vp);
                 if (!text.FloatText.Active) return false;

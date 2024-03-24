@@ -14,10 +14,11 @@ public struct ConfigUnit
     [ConfigId]
     public long id;
     public string name;
+    [ConfigId]
     public long entityId;
     public UnitType type;
     public Real hp;
     public Real mp;
     public Real speed;
-    public const string Path = "/Configs/Unit.cfg";
+    public const string Path = "/Configs/Logic/Unit.cfg";
 }

@@ -32,6 +32,13 @@ public struct LogicEntity
         this.forward = forward;
         this.position = position;
     }
+    public LogicEntity(long id, Real3 forward, Real3 position)
+    {
+        this.id = id;
+        resource = anim = null;
+        this.forward = forward;
+        this.position = position;
+    }
 }
 public struct LogicUnitEntity
 {
@@ -67,13 +74,13 @@ public struct LogicBuffEntity
 {
     public long id;
     public long icon;
-    public long numer;
+    public long number;
     public LogicTimeSpan time;
     public LogicBuffEntity(long id, long icon, long numer, LogicTimeSpan time)
     {
         this.id = id;
         this.icon = icon;
-        this.numer = numer;
+        this.number = numer;
         this.time = time;
     }
 }
@@ -214,6 +221,10 @@ public class LogicWorld : IDisposable
     {
         OnRendererMsg?.Invoke(L2RData.EntityChanged(new LogicEntity(id, resource, anim, forward, position)));
     }
+    private void NativeOnUpdateEntityTransform(long id, Real3 forward, Real3 position, bool immediately)
+    {
+        OnRendererMsg?.Invoke(L2RData.EntityTransformChanged(id, forward, position, immediately));
+    }
     private void NativeOnRemoveEntity(long id, bool immediately)
     {
         OnRendererMsg?.Invoke(L2RData.EntityRemoved(id, immediately));
@@ -318,7 +329,7 @@ public class LogicWorld : IDisposable
                     var wand = invoker.GetIntegerReturnValue(2);
                     var bag = invoker.GetIntegersReturnValue(3);
                     var picks = invoker.GetIntegersReturnValue(4);
-                    players[i] = new LogicPlayerEntity(i, playerName,hero, wand, bag,  picks);
+                    players[i] = new LogicPlayerEntity(i, playerName, hero, wand, bag, picks);
                 }
         using (var function = kernel.FindFunction("Init_GetPlayerWand"))
             for (var pid = 0; pid < players.Length; pid++)
@@ -507,6 +518,7 @@ public class LogicWorld : IDisposable
         RegistFunction("GameConfig.ConfigUnit_GetConfig", "Config_GetUnit");
 
         RegistFunction("OnUpdateEntity", "NativeOnUpdateEntity");
+        RegistFunction("OnUpdateEntityTransform", "NativeOnUpdateEntityTransform");
         RegistFunction("OnRemoveEntity", "NativeOnRemoveEntity");
         RegistFunction("OnUpdateUnitEntity", "NativeOnUpdateUnitEntity");
         RegistFunction("OnRemoveUnitEntity", "NativeOnRemoveUnitEntity");

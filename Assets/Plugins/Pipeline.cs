@@ -1,18 +1,36 @@
-﻿public class Pipeline<T>
+﻿using System.Collections.Generic;
+public class Pipeline<T>
 {
     private readonly T[] values;
-    private long start, end, mask;
-    public Pipeline(int level)
+    private uint start, end, mask;
+    private readonly Queue<T> queue;
+    public Pipeline(int level, bool cache = false)
     {
         values = new T[1 << level];
         start = end = 0;
-        mask = values.Length - 1;
+        mask = (uint)values.Length - 1;
+        queue = cache ? new Queue<T>() : null;
     }
     public bool En(T value)
     {
-        if (start < end - values.Length)
+        if (end - start > (uint)values.Length)
         {
+            if (queue != null)
+            {
+                while (queue.Count > 0 && end - start > (uint)values.Length)
+                    values[(end++) & mask] = queue.Dequeue();
+                if(end - start <= (uint)values.Length)
+                {
+                    queue.Enqueue(value);
+                    return true;
+                }
+            }
             values[(end++) & mask] = value;
+            return true;
+        }
+        else if (queue != null)
+        {
+            queue.Enqueue(value);
             return true;
         }
         return false;

@@ -1,11 +1,12 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GameEntity
 {
-    public event Action OnOwnerChanged;
+    private readonly RendererWorld world;
+    private RendererEntity entity;
     public long id;
-    public long owner;
+    private string resource;
+    private string anim;
     private Vector3 forward;
     private Vector3 trgForward;
     private Vector3 position;
@@ -17,6 +18,20 @@ public class GameEntity
         {
             return position;
         }
+    }
+    public bool Visiable { get { return entity != null; } }
+    public GameEntity(RendererWorld world, LogicEntity entity)
+    {
+        this.world = world;
+        id = entity.id;
+        resource = entity.resource;
+        anim = entity.anim;
+        forward = trgForward = entity.forward.ToVector();
+        position = trgForward = entity.position.ToVector();
+    }
+    public void Update(LogicEntity entity)
+    {
+        UpdateTransform(entity.forward.ToVector(), entity.position.ToVector(), false);
     }
     public void UpdateTransform(Vector3 forward, Vector3 position, bool immediately)
     {
@@ -37,19 +52,37 @@ public class GameEntity
     }
     public void UpdateMove(float deltaTime)
     {
+        var lastForward = forward;
+        var lastPosition = position;
         if (trgTime > Time.time)
         {
             var t = deltaTime / (deltaTime + trgTime - Time.time);
             forward = Vector3.Lerp(forward, trgForward, t);
             position = Vector3.Lerp(position, trgPosition, t);
         }
+        if (world.Mgr.CameraMgr.CameraArea.Contains(new Vector2(position.x, position.z)))
+        {
+            if (entity == null)
+            {
+                entity = world.CreateRendererEntity(resource);
+                entity.PlayAnim(anim);
+                entity.SetRotation(Quaternion.Euler(forward));
+                entity.SetPosition(position);
+            }
+            else
+            {
+                if (lastForward != forward) entity.SetRotation(Quaternion.Euler(forward));
+                if (lastPosition != position) entity.SetPosition(position);
+            }
+        }
+        else entity?.OnRecycle(true);
     }
     public virtual void PlayAnimation(string animation)
     {
-
+        entity?.PlayAnim(animation);
     }
     public void OnRemove(bool immediately)
     {
-
+        entity.OnRecycle(immediately);
     }
 }

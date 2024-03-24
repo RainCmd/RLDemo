@@ -49,6 +49,14 @@ public static class Config
             return palyerHeadIcons.IconList;
         }
     }
+    private static Icons nodeIcons = new Icons(ConfigIcons.NodeIconsPath);
+    public static IReadOnlyList<Sprite> NodeIconList
+    {
+        get
+        {
+            return nodeIcons.IconList;
+        }
+    }
     private static Icons magicNodeTypeIcons = new Icons(ConfigIcons.MagicNodeTypeIconsPath);
     public static IReadOnlyList<Sprite> MagicNodeTypeIcons
     {
