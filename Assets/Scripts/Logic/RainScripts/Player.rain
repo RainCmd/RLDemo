@@ -11,6 +11,15 @@ public struct Wand
     real cdStartTime
     real cdEndTime
     MagicNode[] magicNodes
+    public bool IsValid()
+        for var i = 0; i < magicNodes.GetLength(); i++
+            var node = magicNodes[i]
+            if node != null && node.config.nodeType == GameConfig.MagicNodeType.Missile
+                return true
+        return false
+    public real, real CalcCost()//计算魔杖cd和魔法消耗
+        return 0, 0
+    public Trigger(Unit triggerUnit, real dir)
 
 public class Player
     public integer id
