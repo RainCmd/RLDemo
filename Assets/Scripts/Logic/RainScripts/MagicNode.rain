@@ -1,67 +1,9 @@
 import GameConfig
+import Collections
 
 internal native OnUpdateMagicNode(integer nodeId, integer configId, integer number)
 internal native OnRemvoeMagicNode(integer id)
 public delegate bool MatchMagicNode(MagicNode)
-
-public MagicNode[], integer Add(MagicNode[] values, integer count, MagicNode value)
-    if values.GetLength() == count
-        var newValues = MagicNode[count * 2]
-        for var i = 0; i < count; i++
-            newValues[i] = values[i]
-        values = newValues
-    values[count++] = value
-    return values, count
-
-public MagicNode[], integer Insert(MagicNode[] values, integer count, MagicNode value, integer index)
-    if values.GetLength() == count
-        var newValues = MagicNode[count * 2]
-        for var i = 0; i < count; i++
-            newValues[i] = values[i]
-        values = newValues
-    for var i = count++; i > index; i--
-        values[i] = values[i - 1]
-    values[index] = value
-    return values, count
-
-public MagicNode[], integer RemoveSwap(MagicNode[] values, integer count, MagicNode value)
-    for var i = 0; i < count; i++
-        if values[i] == value
-            values[i] = values[--count]
-            break
-    return values, count
-
-public integer FindIndex(MagicNode[] values, integer count, MatchMagicNode match)
-    for var i = 0; i < count; i++
-        if match(values[i])
-            return i
-    return -1
-
-public MagicNode[], integer Remove(MagicNode[] values, integer count, MagicNode value)
-    for var i = 0; i < count; i++
-        if values[i] == value
-            return RemoveAt(values, count, i)
-    return values, count
-
-public MagicNode[], integer RemoveAt(MagicNode[] values, integer count, integer index)
-    while index++ < count
-        values[index - 1] = values[index]
-    return values, count - 1
-
-public MagicNodeEntity[], integer Add(MagicNodeEntity[] values, integer count, MagicNodeEntity value)
-    if values.GetLength() == count
-        var newValues = MagicNodeEntity[count * 2]
-        for var i = 0; i < count; i++
-            newValues[i] = values[i]
-        values = newValues
-    values[count++] = value
-    return values, count
-
-public integer FindIndex(MagicNodeEntity[] values, integer count, MagicNodeEntity value)
-    for var i = 0; i < count; i++
-        if values[i] == value
-            return i
-    return -1
 
 public class MagicNodeEntity GameEntity
     public MagicNode node
@@ -74,14 +16,15 @@ public class MagicNode
         nodeEntity = null
         config = GetMagicNodeConfig(configId)
         number = config.number
+        OnUpdate()
         OnDrop(position)
     public Remove()
         OnRemvoeMagicNode(GetHandleID())
         OnPick()
-        magicNodePool, magicNodePoolCount = Add(magicNodePool, magicNodePoolCount, this)
+        magicNodePool.Add(this)
     public OnDrop(real3 position)
         if nodeEntity == null
-            nodeEntity = magicNodeEntityPoolCount > 0 ? magicNodeEntityPool[--magicNodeEntityPoolCount] : MagicNodeEntity()
+            nodeEntity = magicNodeEntityPool.Count() > 0 ? MagicNodeEntity& magicNodeEntityPool.Pop() : MagicNodeEntity()
             nodeEntity.node = this
             nodeEntity.Init(config.entityConfigId, "stand", FORWARD, position)
         else
@@ -91,20 +34,15 @@ public class MagicNode
             nodeEntity.ShowAnim("kill")
             nodeEntity.Remove(false)
             nodeEntity.node = null
-            if magicNodeEntityPoolCount == magicNodeEntityPool.GetLength()
-                var pool = MagicNodeEntity[magicNodeEntityPoolCount * 2]
-                for var i = 0; i < magicNodeEntityPoolCount; i++
-                    pool[i] = magicNodeEntityPool[i]
-                magicNodeEntityPool = pool
-            magicNodeEntityPool[magicNodeEntityPoolCount++] = nodeEntity
+            magicNodeEntityPool.Add(nodeEntity)
             nodeEntity = null
+    public OnUpdate()
+        OnUpdateMagicNode(GetHandleID(), config.id, number)
 
 public MagicNode CreateMagicNode(integer configId, real3 position)
-    var node = magicNodeEntityPoolCount > 0 ? magicNodePool[--magicNodePoolCount] : MagicNode()
+    var node = magicNodeEntityPool.Count() > 0 ? MagicNode& magicNodePool.Pop() : MagicNode()
     node.Init(configId, position)
     return node
 
-public MagicNodeEntity[] magicNodeEntityPool = MagicNodeEntity[4]
-public integer magicNodeEntityPoolCount = 0
-public MagicNode[] magicNodePool = MagicNode[4]
-public integer magicNodePoolCount = 0
+space List magicNodeEntityPool = List()//<MagicNodeEntity>
+space List magicNodePool = List()//<MagicNode>

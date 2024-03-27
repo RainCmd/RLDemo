@@ -1,22 +1,50 @@
 import GameConfig
+import Collections
 import kernel.System
 import kernel.Reflection
 
 public class MagicNodeInstance
     public Unit creater
     public MagicNodeConfig config
+    public real GetDir(real dir, integer index)
+        return dir
     public OnEnd()
 
 public class MissileMagicNode MagicNodeInstance
-    public GameEntity CreateMissile(real dir)
-        return null
-    public Unit Hit()
-        return null
-    public bool IsFinish()
-        return false
+    private Magic magic
+    public real dir
+    public List alters = List()//<AlterMagicNode>
+    public OnStart(Magic magic, real dir)
+        this.magic = magic
+        for var i = 0; i < magic.alters.Count(); i++
+            var info = MagicNodeInfo& magic.alters.Get(i)
+            var alter = CreateAlterMagicNode(creater, info.node.config)
+            dir = alter.GetDir(dir, info.index)
+            alters.Add(alter)
+        this.dir = dir
+        for var i = 0; i < alters.Count(); i++
+            var alter = AlterMagicNode& alters.Get(i)
+            start alter.OnStart(this)
+        start OnStart()
+    public OnStart()
+    public OnHit(Unit target)
+        for var i = 0; i < alters.Count(); i++
+            var alter = AlterMagicNode& alters.Get(i)
+            alter.OnHit(target)
+    public OnFinish()
+        for var i = 0; i < alters.Count(); i++
+            var alter = AlterMagicNode& alters.Get(i)
+            alter.OnFinish()
+    public TriggerNext()
+        for var i = 0; i < magic.nexts.Count(); i++
+            var m = Magic& magic.nexts.Get(i)
+            var missile = CreateMissileMagicNode(creater, m.missile.node.config)
+            missile.OnStart(m, GetDir(dir, m.missile.index))
 
 public class AlterMagicNode MagicNodeInstance
-    public OnStart(MissileMagicNode node, GameEntity missile)
+    public OnStart(MissileMagicNode node)
+    public OnHit(Unit)
+    public OnFinish()
 
 namespace MagicNodeInstanceUtils
     import Collections

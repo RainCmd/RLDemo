@@ -1,40 +1,13 @@
 import GameConfig
+import Collections
 
 internal native OnUpdateUnitEntity(integer id, integer player, UnitType unitType, real hp, real maxHP, real mp, real maxMP)
 internal native OnRemoveUnitEntity(integer id)
 internal native OnUnitBuffChanged(integer unitId, integer buffId, bool addition)
 
-public Unit[], integer Add(Unit[] values, integer count, Unit value)
-    if values.GetLength() == count
-        var newValues = Unit[count * 2]
-        for var i = 0; i < count; i++
-            newValues[i] = values[i]
-        values = newValues
-    values[count++] = value
-    return values, count
-
-public Unit[], integer RemoveSwap(Unit[] values, integer count, Unit value)
-    for var i = 0; i < count; i++
-        if values[i] == value
-            values[i] = values[--count]
-            break
-    return values, count
-
-public Unit[], integer Remove(Unit[] values, integer count, Unit value)
-    for var i = 0; i < count; i++
-        if values[i] == value
-            return RemoveAt(values, count, i)
-    return values, count
-
-public Unit[], integer RemoveAt(Unit[] values, integer count, integer index)
-    while index++ < count
-        values[index - 1] = values[index]
-    return values, count - 1
-
-space Unit[] unitPool = Unit[4]
-space integer unitPoolCount = 0
+space List unitPool = List()//<List>
 public Unit CreateUnit(integer configId, integer player, real3 forward, real3 position)
-    var result = unitPoolCount > 0 ? unitPool[--unitPoolCount] : Unit()
+    var result = unitPool.Count() > 0 ? Unit& unitPool.Pop() : Unit()
     result.Init(configId, player, forward, position)
     return result
 
@@ -46,8 +19,7 @@ public class Unit GameEntity
     public real mp
     public real maxMP
     public real moveSpeed
-    public Buff[] buffs = Buff[4]
-    public integer buffCount = 0
+    public List buffs = List()//<Buff>
     public Init(integer configId, integer player, real3 forward, real3 position)
         var config = GetUnitConfig(configId)
         base.Init(config.entityConfigId, "stand", forward, position)
@@ -56,21 +28,20 @@ public class Unit GameEntity
         hp = maxHP = config.hp
         mp = maxMP = config.mp
         moveSpeed = config.speed
-        buffCount = 0
         this->OnUpdate()
     public Remove(bool immediately)
-        for var i = 0; i < buffCount; i++
-            OnUnitBuffChanged(GetHandleID(), buffs[i].GetHandleID(), false)
+        for var i = 0; i < buffs.Count(); i++
+            OnUnitBuffChanged(GetHandleID(), buffs.Get(i).GetHandleID(), false)
         OnRemoveUnitEntity(GetHandleID())
         base.Remove(immediately)
-        unitPool, unitPoolCount = global Add(unitPool, unitPoolCount, this)
+        unitPool.Add(this)
     public Add(Buff buff)
-        buffs, buffCount = global Add(buffs, buffCount, buff)
+        buffs.Add(buff)
         buff.Update()
         OnUnitBuffChanged(GetHandleID(), buff.GetHandleID(), true)
     public bool Accumulation(Buff buff)
-        for var i = 0; i < buffCount; i++
-            var b = buffs[i]
+        for var i = 0; i < buffs.Count(); i++
+            var b = Buff& buffs.Get(i)
             if b.configId == buff.configId && b.source == buff.source
                 b.number++
                 b.Update()
@@ -80,7 +51,7 @@ public class Unit GameEntity
         return true
     public Remove(Buff buff)
         OnUnitBuffChanged(GetHandleID(), buff.GetHandleID(), false)
-        buffs, buffCount = RemoveSwap(buffs, buffCount, buff)
+        buffs.Remove(buff)
         buff.Remove()
     private OnUpdate()
         OnUpdateUnitEntity(GetHandleID(), player, unitType, hp, maxHP, mp, maxMP)

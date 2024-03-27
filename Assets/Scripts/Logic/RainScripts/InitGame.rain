@@ -57,24 +57,24 @@ namespace InitGame
         OnLoadGameEntity(e.GetHandleID(), e.resource, e.anim, e.forward, e.position)
         if e is Unit u
             OnLoadGameUnit(u.GetHandleID(), u.player, u.unitType, u.hp, u.maxHP, u.mp, u.maxMP)
-            for var i = 0; i < u.buffCount; i++
-                var b = u.buffs[i]
+            for var i = 0; i < u.buffs.Count(); i++
+                var b = Buff& u.buffs.Get(i)
                 OnLoadBuff(u.GetHandleID(), b.GetHandleID(), b.icon, b.number, b.startTime, b.endTime)
 
     public LoadGameData()
         worldRoot.SelectAll(OnLoadEntity)
         for var i = 0; i < players.GetLength(); i++
             var player = players[i]
-            for var i = 0; i < player.bagMagicNodeCount; i++
-                var node = player.bagMagicNodes[i]
+            for var i = 0; i < player.bagMagicNodes.Count(); i++
+                var node = MagicNode& player.bagMagicNodes.Get(i)
                 OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
             for var i = 0; i < player.wands.GetLength(); i++
                 var wand = player.wands[i]
                 for var i = 0; i < wand.magicNodes.GetLength(); i++
                     var node = wand.magicNodes[i]
                     OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
-            for var i = 0; i < player.pickListCount; i++
-                var node = player.pickList[i].node
+            for var i = 0; i < player.pickList.Count(); i++
+                var node = (MagicNodeEntity& player.pickList.Get(i)).node
                 if node.number != 0
                     OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
 
@@ -84,12 +84,12 @@ namespace InitGame
         return players.GetLength()
     public string, integer, integer, integer[], integer[] Init_GetPlayer(integer id)//玩家名, 玩家英雄id, 当前法杖, 背包列表, 拾取列表
         var player = players[id]
-        var bag = integer[player.bagMagicNodeCount]
+        var bag = integer[player.bagMagicNodes.Count()]
         for var i = 0; i < bag.GetLength(); i++
-            bag[i] = player.bagMagicNodes[i].GetHandleID()
-        var pick = integer[player.pickListCount]
-        for var i = 0; i < player.pickListCount; i++
-            pick[i] = player.pickList[i].node.GetHandleID()
+            bag[i] = player.bagMagicNodes.Get(i).GetHandleID()
+        var pick = integer[player.pickList.Count()]
+        for var i = 0; i < player.pickList.Count(); i++
+            pick[i] = (MagicNodeEntity&  player.pickList.Get(i)).node.GetHandleID()
         return player.name, player.hero?.GetHandleID(), player.currentWand, bag, pick
     public real, real, integer[] Init_GetPlayerWand(integer playerId, integer wand)//法杖cdStart,法杖cdEnd,法杖法术
         var wand = players[playerId].wands[wand]

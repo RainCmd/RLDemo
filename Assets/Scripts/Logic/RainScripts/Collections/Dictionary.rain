@@ -1,0 +1,162 @@
+
+namespace Collections
+    space integer[] primes = {0x3, 0x7, 0xb, 0x11, 0x17, 0x1d, 0x25, 0x2f, 0x3b, 0x47, 0x59, 0x6b, 0x83, 0xa3, 0xc5, 0xef, 0x125, 0x161, 0x1af, 0x209, 0x277, 0x2f9, 0x397, 0x44f, 0x52f, 0x63d, 0x78b, 0x91d, 0xaf1, 0xd2b, 0xfd1, 0x12fd, 0x16cf, 0x1b65, 0x20e3, 0x2777, 0x2f6f, 0x38ff, 0x446f, 0x521f, 0x628d, 0x7655, 0x8e01, 0xaa6b, 0xcc89, 0xf583, 0x126a7, 0x1619b, 0x1a857, 0x1fd3b, 0x26315, 0x2dd67, 0x3701b, 0x42023, 0x4f361, 0x5f0ed, 0x72125, 0x88e31, 0xa443b, 0xc51eb, 0xec8c1, 0x11bdbf, 0x154a3f, 0x198c4f, 0x1ea867, 0x24ca19, 0x2c25c1, 0x34fa1b, 0x3f928f, 0x4c4987, 0x5b8b6f, 0x6dda89}
+    public integer GetPrimes(integer size)
+        for var i, var length = 0, primes.GetLength(); i < length; i++
+            if primes[i] > size
+                return primes[i]
+        exit $"未找到大于{size}的质数"
+            
+    public delegate IntForeachCallback(integer key, handle value)
+    space struct IntDictionarySlot
+        integer key
+        handle value
+        integer next
+    public class IntDictionary
+        private integer[] buckets = integer[3]
+        private IntDictionarySlot[] slots = IntDictionarySlot[3]
+        private integer top = 0
+        private integer free = -1
+        private integer count = 0
+        public IntDictionary()
+            for var i, var length = 0, buckets.GetLength(); i < length; i++
+                buckets[i] = -1
+        public Set(integer key, handle value)
+            var bidx = key % buckets.GetLength()
+            var sidx = buckets[bidx]
+            while sidx >= 0
+                var slot = slots[sidx]
+                if slot.key == key
+                    slots[sidx] = IntDictionarySlot(key, value, slot.next)
+                    return
+                sidx = slot.next
+            if free < 0
+                if top == slots.GetLength()
+                    var size = GetPrimes(buckets.GetLength())
+                    var newBuckets = integer[size]
+                    for var i = 0; i < size; i++
+                        newBuckets[i] = -1
+                    buckets = newBuckets
+                    var newSlots = IntDictionarySlot[size]
+                    for var i = 0; i < top; i++
+                        var slot = slots[i]
+                        var bidx = slot.key % size
+                        slot.next = buckets[bidx]
+                        buckets[bidx] = i
+                        newSlots[i] = slot
+                    slots = newSlots
+                sidx = top++
+            else
+                sidx = free
+                free = slots[free].next
+            slots[sidx] = IntDictionarySlot(key, value, buckets[bidx])
+            buckets[bidx] = sidx
+            count++
+        public Remove(integer key)
+            var bidx = key % buckets.GetLength()
+            var prev = -1
+            var sidx = buckets[bidx]
+            while sidx >= 0
+                var slot = slots[sidx]
+                if slot.key == key
+                    if prev < 0
+                        buckets[bidx] = slot.next
+                    else
+                        slots[prev].next = slot.next
+                    slots[sidx].next = free
+                    free = sidx
+                    return
+                prev = sidx
+                sidx = slot.next
+        public bool, handle TryGet(integer key)
+            var bidx = key % buckets.GetLength()
+            var sidx = buckets[bidx]
+            while sidx >= 0
+                var slot = slots[sidx]
+                if slot.key == key
+                    return true, slot.value
+                sidx = slot.next
+            return false, null
+        public Foreach(IntForeachCallback callback)
+            for var bidx, var blen = 0, buckets.GetLength(); bidx < blen; bidx++
+                var sidx = buckets[bidx]
+                while sidx >= 0
+                    callback(slots[sidx].key, slots[sidx].value)
+                    sidx = slots[sidx].next
+
+    public delegate StrForeachCallback(string key, handle value)
+    space struct StrDictionarySlot
+        string key
+        handle value
+        integer next
+    public class StrDictionary
+        private integer[] buckets = integer[3]
+        private StrDictionarySlot[] slots = StrDictionarySlot[3]
+        private integer top = 0
+        private integer free = -1
+        private integer count = 0
+        public IntDictionary()
+            for var i, var length = 0, buckets.GetLength(); i < length; i++
+                buckets[i] = -1
+        public Set(string key, handle value)
+            var bidx = key.GetStringID() % buckets.GetLength()
+            var sidx = buckets[bidx]
+            while sidx >= 0
+                var slot = slots[sidx]
+                if slot.key == key
+                    slots[sidx] = StrDictionarySlot(key, value, slot.next)
+                    return
+                sidx = slot.next
+            if free < 0
+                if top == slots.GetLength()
+                    var size = GetPrimes(buckets.GetLength())
+                    var newBuckets = integer[size]
+                    for var i = 0; i < size; i++
+                        newBuckets[i] = -1
+                    buckets = newBuckets
+                    var newSlots = StrDictionarySlot[size]
+                    for var i = 0; i < top; i++
+                        var slot = slots[i]
+                        var bidx = slot.key.GetStringID() % size
+                        slot.next = buckets[bidx]
+                        buckets[bidx] = i
+                        newSlots[i] = slot
+                    slots = newSlots
+                sidx = top++
+            else
+                sidx = free
+                free = slots[free].next
+            slots[sidx] = StrDictionarySlot(key, value, buckets[bidx])
+            buckets[bidx] = sidx
+            count++
+        public Remove(string key)
+            var bidx = key.GetStringID() % buckets.GetLength()
+            var prev = -1
+            var sidx = buckets[bidx]
+            while sidx >= 0
+                var slot = slots[sidx]
+                if slot.key == key
+                    if prev < 0
+                        buckets[bidx] = slot.next
+                    else
+                        slots[prev].next = slot.next
+                    slots[sidx].next = free
+                    free = sidx
+                    return
+                prev = sidx
+                sidx = slot.next
+        public bool, handle TryGet(string key)
+            var bidx = key.GetStringID() % buckets.GetLength()
+            var sidx = buckets[bidx]
+            while sidx >= 0
+                var slot = slots[sidx]
+                if slot.key == key
+                    return true, slot.value
+                sidx = slot.next
+            return false, null
+        public Foreach(StrForeachCallback callback)
+            for var bidx, var blen = 0, buckets.GetLength(); bidx < blen; bidx++
+                var sidx = buckets[bidx]
+                while sidx >= 0
+                    callback(slots[sidx].key, slots[sidx].value)
+                    sidx = slots[sidx].next

@@ -1,0 +1,98 @@
+
+namespace Collections
+    import kernel.System.Exceptions
+    public class List 
+        private handle[] values = null
+        private integer count = 0
+        public integer Count()
+            return count
+        private integer Legitimate(integer index)
+            if index < 0
+                index += count
+            if index < 0 || index >= count
+                exit OutOfRange
+            return index
+        private TryExpansion(integer count)
+            if values == null
+                values = handle[count > 4 ? count : 4]
+            elseif this.count + count > values.GetLength()
+                var nc = this.count
+                while nc < this.count + count
+                    nc += nc >> 1
+                var nvs = handle[nc]
+                for var i = 0; i < this.count; i++
+                    nvs[i] = values[i]
+                values = nvs
+
+        public handle Get(integer index)
+            return values[Legitimate(index)]
+
+        public handle Peek()
+            if count > 0
+                return values[count - 1]
+            exit OutOfRange
+
+        public Add(handle value)
+            TryExpansion(1)
+            values[count++] = value
+        
+        public Insert(handle value, integer index)
+            if index >= count
+                Add(value)
+                return
+            elseif index < 0
+                index = 0
+            TryExpansion(1)
+            var tmp = values[index]
+            count++
+            while index < count
+                values[index] = value
+                value = tmp
+                tmp = values[++index]
+
+        public handle Pop()
+            if count == 0 
+                exit OutOfRange
+            return values[--count]
+
+        public handle RemoveAt(integer index)
+            index = Legitimate(index)
+            var result = values[index]
+            while ++index < count
+                values[index - 1] = values[index]
+            count--
+            return result
+
+        public bool Remove(handle value)
+            for var i = 0; i < count; i++
+                if values[i] == value
+                    RemoveAt(i)
+                    return true
+            return false
+
+        public handle FastRemove(integer index)
+            index = Legitimate(index)
+            var result = values[index]
+            values[index] = values[--count]
+            return result
+
+        public integer FindIndex(handle value)
+            for var i = 0; i < count; i++
+                if values[i] == value
+                    return i
+            return -1
+
+        public List Clone()
+            var result = List()
+            if count < 4
+                for var i = 0; i < count; i++
+                    result.Add(values[i])
+            else
+                result.values = handle[count]
+                result.count = count
+                for var i = 0; i < count; i++
+                    result.values[i] = values[i]
+            return result
+
+        public Clear()
+            count = 0
