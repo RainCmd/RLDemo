@@ -10,6 +10,7 @@ public static class LogicConfig
     public static ConfigMagicNode[] magicNodes;
     public static ConfigEntity[] entities;
     public static ConfigUnit[] units;
+    public static ConfigBuff[] buffs;
     public static void LoadConfigs()
     {
         if (loaded) return;
@@ -17,6 +18,7 @@ public static class LogicConfig
         magicNodes = Load<ConfigMagicNode>(ConfigMagicNode.Path).ToArray();
         entities = Load<ConfigEntity>(ConfigEntity.Path).ToArray();
         units = Load<ConfigUnit>(ConfigUnit.Path).ToArray();
+        buffs = Load<ConfigBuff>(ConfigBuff.Path).ToArray();
     }
     public static string LocalPathToGlobalPath(string path)
     {

@@ -1,7 +1,6 @@
 import GameConfig
 import Collections
-import kernel.System
-import kernel.Reflection
+import Utils
 
 public class MagicNodeInstance
     public Unit creater
@@ -46,51 +45,17 @@ public class AlterMagicNode MagicNodeInstance
     public OnHit(Unit)
     public OnFinish()
 
-namespace MagicNodeInstanceUtils
-    import Collections
-
-    space StrDictionary typeCache = StrDictionary()
-    space type FindNodeType(Space s, string name, type parent)
-        var ts = s.GetTypes()
-        for var i = 0; i < ts.GetCount(); i++
-            var t = ts.GetElement(i)
-            if t.GetName() == name && t.IsAssignable(parent)
-                return t
-        var ss = s.GetChildren()
-        for var i = 0; i < ss.GetCount(); i++
-            var t = FindNodeType(ss.GetElement(i), name, parent)
-            if t.GetName() == name && t.IsAssignable(parent)
-                return t
-        return <MagicNodeInstance>
-    space type FindNodeType(string name, type parent)
-        var f, var r = typeCache.TryGet(name)
-        if f 
-            return type& r
-        var ass = GetAssembles()
-        for var i = 0; i < ass.GetLength(); i++
-            var result = FindNodeType(ass[i], name, parent)
-            if(result != <MagicNodeInstance>)
-                typeCache.Set(name, result)
-                return result
-        return <MagicNodeInstance>
-
-    space handle CreateInstance(type t)
-        var ctors = t.GetConstructors()
-        for var i = 0; i < ctors.GetCount(); i++
-            var ctor = ctors.GetElement(i)
-            if ctor.GetParameters().GetCount() == 0
-                return ctor.Invoke(null)
-        return null
-    internal handle GetNodeInstance(Unit creater, MagicNodeConfig config)
-        var t = FindNodeType(config.logic, <MissileMagicNode>)
-        if t != <MagicNodeInstance>
-            var node = CreateInstance(t)
-            if node is MagicNodeInstance instance
-                instance.creater = creater
-                instance.config = config
-                return instance
-        return null
+space StrDictionary magicNodeTypeCache = StrDictionary()
+internal handle GetNodeInstance(Unit creater, MagicNodeConfig config, type t)
+    var f, var r = magicNodeTypeCache.TryGet(config.logic)
+    if !f
+        r = FindType(config.logic, t)
+        magicNodeTypeCache.Set(config.logic, r)
+    var node = MagicNodeInstance& CreateInstance(type& r)
+    node.creater = creater
+    node.config = config
+    return node
 public MissileMagicNode CreateMissileMagicNode(Unit creater, MagicNodeConfig config)
-    return MagicNodeInstanceUtils.GetNodeInstance(creater, config) as MissileMagicNode
+    return GetNodeInstance(creater, config, <MissileMagicNode>) as MissileMagicNode
 public AlterMagicNode CreateAlterMagicNode(Unit creater, MagicNodeConfig config)
-    return MagicNodeInstanceUtils.GetNodeInstance(creater, config) as AlterMagicNode
+    return GetNodeInstance(creater, config, <AlterMagicNode>) as AlterMagicNode

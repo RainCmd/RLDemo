@@ -1,6 +1,12 @@
 
 namespace Collections
     import kernel.System.Exceptions
+    public List +(List list, handle value)
+        list.Add(value)
+        return list
+    public List -(List list, handle value)
+        list.Remove(value)
+        return list
     public class List 
         private handle[] values = null
         private integer count = 0

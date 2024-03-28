@@ -73,13 +73,13 @@ public struct LogicTimeSpan
 public struct LogicBuffEntity
 {
     public long id;
-    public long icon;
+    public long configId;
     public long number;
     public LogicTimeSpan time;
-    public LogicBuffEntity(long id, long icon, long numer, LogicTimeSpan time)
+    public LogicBuffEntity(long id, long configId, long numer, LogicTimeSpan time)
     {
         this.id = id;
-        this.icon = icon;
+        this.configId = configId;
         this.number = numer;
         this.time = time;
     }
@@ -216,6 +216,14 @@ public class LogicWorld : IDisposable
     {
         return LogicConfig.units[index];
     }
+    private long Config_GetBuffCount()
+    {
+        return LogicConfig.buffs.Length;
+    }
+    private ConfigBuff Config_GetBuff(long index)
+    {
+        return LogicConfig.buffs[index];
+    }
 
     private void NativeOnUpdateEntity(long id, string resource, string anim, Real3 forward, Real3 position)
     {
@@ -241,9 +249,9 @@ public class LogicWorld : IDisposable
     {
         OnRendererMsg?.Invoke(L2RData.UnitBuffChanged(unitId, buffId, addition));
     }
-    private void NativeOnUpdateBuff(long id, long icon, long number, Real start, Real end)
+    private void NativeOnUpdateBuff(long id, long configId, long number, Real start, Real end)
     {
-        OnRendererMsg?.Invoke(L2RData.UpdateBuffEntity(new LogicBuffEntity(id, icon, number, new LogicTimeSpan(start, end))));
+        OnRendererMsg?.Invoke(L2RData.UpdateBuffEntity(new LogicBuffEntity(id, configId, number, new LogicTimeSpan(start, end))));
     }
     private void NativeOnRemoveBuff(long id)
     {
@@ -291,12 +299,12 @@ public class LogicWorld : IDisposable
     {
         initResult?.units?.Add(id, new LogicUnitEntity(id, player, unitType, hp, maxHP, mp, maxMP));
     }
-    private void NativeOnLoadBuff(long unitId, long id, long icon, long number, Real startTime, Real endTime)
+    private void NativeOnLoadBuff(long unitId, long id, long configId, long number, Real startTime, Real endTime)
     {
         if (initResult != null)
         {
             if (!initResult.buffs.TryGetValue(unitId, out var buffs)) initResult.buffs.Add(unitId, buffs = new Dictionary<long, LogicBuffEntity>());
-            buffs.Add(id, new LogicBuffEntity(id, icon, number, new LogicTimeSpan(startTime, endTime)));
+            buffs.Add(id, new LogicBuffEntity(id, configId, number, new LogicTimeSpan(startTime, endTime)));
         }
     }
     private void NativeOnLoadMagicNode(long id, long configId, long number)
@@ -516,6 +524,8 @@ public class LogicWorld : IDisposable
         RegistFunction("GameConfig.ConfigEntity_GetConfig", "Config_GetEntityConfig");
         RegistFunction("GameConfig.ConfigUnit_GetConfigCount", "Config_GetUnitCount");
         RegistFunction("GameConfig.ConfigUnit_GetConfig", "Config_GetUnit");
+        RegistFunction("GameConfig.ConfigBuff_GetConfigCount", "Config_GetBuffCount");
+        RegistFunction("GameConfig.ConfigBuff_GetConfig", "Config_GetBuff");
 
         RegistFunction("OnUpdateEntity", "NativeOnUpdateEntity");
         RegistFunction("OnUpdateEntityTransform", "NativeOnUpdateEntityTransform");
@@ -534,5 +544,10 @@ public class LogicWorld : IDisposable
         RegistFunction("OnPlayerWandChanged", "NativeOnPlayerWandChanged");
 
         RegistFunction("ShowFloatText", "ShowFloatText");
+
+        RegistFunction("OnLoadGameEntity", "NativeOnLoadGameEntity");
+        RegistFunction("OnLoadGameUnit", "NativeOnLoadGameUnit");
+        RegistFunction("OnLoadBuff", "NativeOnLoadBuff");
+        RegistFunction("OnLoadMagicNode", "NativeOnLoadMagicNode");
     }
 }

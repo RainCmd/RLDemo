@@ -22,6 +22,11 @@ public class LogicConfigEditor : EditorWindow
     }
     private object Draw(string label, object value, Type type)
     {
+        if (type == typeof(bool))
+        {
+            if (value == null) value = false;
+            return EditorGUILayout.Toggle(label, (bool)value);
+        }
         if (type == typeof(int))
         {
             if (value == null) value = 0;
@@ -104,12 +109,33 @@ public class LogicConfigEditor : EditorWindow
         }
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.EndHorizontal();
+        var field_id = type.GetField("id");
+        var field_name = type.GetField("name");
         scroll = EditorGUILayout.BeginScrollView(scroll);
         for (int i = 0; i < list.Count; i++)
         {
             var f = fold.Contains(i);
             EditorGUILayout.BeginHorizontal();
-            var r = EditorGUILayout.Foldout(f, i.ToString() + "  " + type.Name);
+            var desc = type.Name;
+            var value = list[i];
+            if (value != null)
+            {
+                var id = "";
+                if (field_id != null)
+                {
+                    if (field_id.FieldType == typeof(long))
+                        id = ConfigIdAttributeEditor.ConvCfgID((ulong)(long)field_id.GetValue(value));
+                    else
+                        id = field_id.GetValue(value).ToString();
+                }
+                if (field_id != null && field_name != null)
+                {
+                    desc = "[{0}] {1}".Format(id, field_name.GetValue(value));
+                }
+                else if (field_id != null) desc = "[{0}]".Format(desc);
+                else if (field_name != null) desc = field_name.GetValue(value).ToString();
+            }
+            var r = EditorGUILayout.Foldout(f, i.ToString() + "  " + desc);
             if (GUILayout.Button("X", GUILayout.Width(24)))
             {
                 list.RemoveAt(i);
@@ -159,5 +185,10 @@ public class LogicConfigEditor : EditorWindow
     private static void ShowUnit()
     {
         ShowWindow<ConfigUnit>(ConfigUnit.Path);
+    }
+    [MenuItem("配置文件/逻辑配置/Buff")]
+    private static void ShowBuff()
+    {
+        ShowWindow<ConfigBuff>(ConfigBuff.Path);
     }
 }

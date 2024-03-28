@@ -1,0 +1,25 @@
+namespace Utils 
+    import kernel.System
+    import kernel.Reflection
+    
+    space type FindType(Space s, string name, type parent)
+        var ts = s.GetTypes()
+        for var i = 0; i < ts.GetCount(); i++
+            var t = ts.GetElement(i)
+            if t.GetName() == name && t.IsAssignable(parent)
+                return t 
+        var ss = s.GetChildren()
+        for var i = 0; i < ss.GetCount(); i++
+            var t = FindType(ss.GetElement(i), name, parent)
+            if t != <handle>
+                return t
+        return <handle>
+
+    public type FindType(string name, type parent)
+        var ass = GetAssembles()
+        for var i = 0; i < ass.GetLength(); i++
+            var result = FindType(ass[i], name, parent)
+            if result != <handle>
+                return result
+        exit $"类型未找到，类型名：{name}，父类名：{parent.GetName()}"
+                

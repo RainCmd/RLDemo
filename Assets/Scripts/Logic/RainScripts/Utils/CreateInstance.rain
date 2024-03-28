@@ -1,0 +1,9 @@
+namespace Utils
+    import kernel.Reflection
+    public handle CreateInstance(type t)
+        var ctors = t.GetConstructors()
+        for var i = 0; i < ctors.GetCount(); i++
+            var ctor = ctors.GetElement(i)
+            if ctor.GetParameters().GetCount() == 0
+                return ctor.Invoke(null)
+        exit $"实例创建失败，没有找到默认构造函数。类型名：{t.GetName()}"

@@ -35,25 +35,30 @@ public class ConfigIdAttributeEditor : PropertyDrawer
             EditorGUI.PropertyField(position, property, label);
         }
     }
-    public static ulong Draw(Rect position, GUIContent label, ulong value)
+    public static string ConvCfgID(ulong id)
     {
         var txt = "";
-        var src = value;
-        while (value > 0)
+        while (id > 0)
         {
-            txt = (char)(value & 0xff) + txt;
-            value >>= 8;
+            txt = (char)(id & 0xff) + txt;
+            id >>= 8;
         }
+        return txt;
+    }
+    public static ulong Draw(Rect position, GUIContent label, ulong value)
+    {
+        var txt = ConvCfgID(value);
         txt = EditorGUI.TextField(position, label, txt);
-        if (txt.Length > 8) return src;
+        if (txt.Length > 8) return value;
+        var result = 0ul;
         for (int i = 0; i < txt.Length; i++)
-            if (txt[i] > 255) return src;
+            if (txt[i] > 255) return value;
             else
             {
-                value <<= 8;
-                value += txt[i];
+                result <<= 8;
+                result += txt[i];
             }
-        return value;
+        return result;
     }
     public static ulong Draw(Rect position, string label, ulong value)
     {

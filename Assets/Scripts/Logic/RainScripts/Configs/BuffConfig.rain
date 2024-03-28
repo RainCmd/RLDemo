@@ -1,0 +1,26 @@
+namespace GameConfig
+    space native integer ConfigBuff_GetConfigCount()
+    space native integer, string, string, integer, bool, bool, bool, real, string ConfigBuff_GetConfig(integer)
+
+    public struct BuffConfig
+        integer id
+        string name
+        string desc
+        integer icon
+        bool isDebuff
+        bool refresh//刷新持续时间
+        bool accumulation//堆积
+        real duration//持续时间
+        string logic
+    space BuffConfig[] buffConfigs
+    public BuffConfig GetBuffConfig(integer configId)
+        for var i, var c = 0, buffConfigs.GetLength(); i < c; i++
+            var cfg = buffConfigs[i]
+            if cfg.id == configId
+                return cfg
+        exit $"Buff配置 id = {configId} 未找到"
+    public LoadBuffConfig()
+        var count = ConfigBuff_GetConfigCount()
+        buffConfigs = BuffConfig[count]
+        for var i = 0; i < count; i++
+            buffConfigs[i] = BuffConfig(ConfigBuff_GetConfig(i))

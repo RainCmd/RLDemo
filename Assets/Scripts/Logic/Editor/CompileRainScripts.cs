@@ -59,16 +59,31 @@ public class CompileRainScripts
         foreach (var file in Directory.GetFiles(path, "*.rain")) files.Add(new CodeFile(file));
         foreach (var dir in Directory.GetDirectories(path)) LoadCodeFiles(dir, files);
     }
-    private static void LogErrMsg(RainLanguageAdapter.ErrorMessage msg, Action<object, Object> action, string msgColor)
+    private static void LogErrMsg(List<BuildParameter.ICodeFile> files, RainLanguageAdapter.ErrorMessage msg, Action<object, Object> action, string msgColor)
     {
-        var path = msg.Path.Replace(dataPath, "Assets");
+        var path = msg.Path;
+        var file = files.Find(v => v.Path == path);
+        path = path.Replace(dataPath, "Assets");
         var assetPath = path;
         var detail = msg.Detail;
         var fidx = path.LastIndexOfAny(new char[] { '\\', '/' });
         var sidx = path.LastIndexOf('.');
         path = $"{path.Substring(0, fidx + 1)}<color=#00ccff>{path.Substring(fidx + 1, sidx - fidx - 1)}</color>{path.Substring(sidx)}";
         if (!rainErrorMsgMap.TryGetValue(detail.messageType.ToString(), out var errMsg)) errMsg = detail.messageType.ToString();
-        var detailMsg = $"{path} line:<color=#ffcc00>{detail.line}</color> [{detail.start}, {detail.start + detail.length}]\n错误码:<color=#{msgColor}>{errMsg}</color>";
+
+        var detailMsg = $"{path} line:<color=#ffcc00>{detail.line}</color>";
+        if (file != null)
+        {
+            using (var sr = new StringReader(file.Content))
+            {
+                for (int i = 1; i < detail.line; i++) sr.ReadLine();
+                var line = sr.ReadLine();
+                var anchor = line.Substring((int)detail.start, (int)Math.Min(line.Length - detail.start, detail.length));
+                detailMsg += $" <color=#{msgColor}><b>{anchor}</b></color>";
+            }
+        }
+        else detailMsg += $" [{detail.start}, {detail.start + detail.length}]";
+        detailMsg += $"\n错误码:<color=#{msgColor}>{errMsg}</color>";
         var emsg = msg.ExteraMsg;
         if (!string.IsNullOrEmpty(emsg)) detailMsg += "\n" + emsg;
         EnqueueLogMsg(action, assetPath, detailMsg);
@@ -101,9 +116,9 @@ public class CompileRainScripts
                     for (uint i = 0, cnt = product.GetErrorCount((RainErrorLevel)lvl); i < cnt; i++)
                         using (var msg = product.GetErrorMessage((RainErrorLevel)lvl, i))
                         {
-                            if (lvl == 0) LogErrMsg(msg, Debug.LogError, "ff0000");
-                            else if (lvl <= (int)RainErrorLevel.WarringLevel4) LogErrMsg(msg, Debug.LogWarning, "ffcc00");
-                            else LogErrMsg(msg, Debug.Log, "777777");
+                            if (lvl == 0) LogErrMsg(files, msg, Debug.LogError, "ff0000");
+                            else if (lvl <= (int)RainErrorLevel.WarringLevel4) LogErrMsg(files, msg, Debug.LogWarning, "ffcc00");
+                            else LogErrMsg(files, msg, Debug.Log, "777777");
                         }
                 compileState = "输出编译信息完成";
                 if (product.GetErrorCount(RainErrorLevel.Error) > 0)

@@ -11,6 +11,17 @@ public Unit CreateUnit(integer configId, integer player, real3 forward, real3 po
     result.Init(configId, player, forward, position)
     return result
 
+public delegate real UnitDamageEvent(Unit source, real damage, Unit target)//返回修正后的伤害值
+public List AnyUnitTakesDamage = List()//<UnitDamageEvent>
+public DamageUnit(Unit source, real damage, Unit target)
+    if target == null
+        return
+    for var i, var c = 0, AnyUnitTakesDamage.Count(); i < c; i++
+        var e = UnitDamageEvent& AnyUnitTakesDamage.Get(i)
+        damage = e(source, damage, target)
+    target.Hit(source, damage)
+    
+public delegate real HitEvent(Unit source, real damage)//返回修正后的伤害值
 public class Unit GameEntity
     public integer player
     public UnitType unitType
@@ -20,6 +31,7 @@ public class Unit GameEntity
     public real maxMP
     public real moveSpeed
     public List buffs = List()//<Buff>
+    public List onHitEvent = List()//<HitEvent>
     public Init(integer configId, integer player, real3 forward, real3 position)
         var config = GetUnitConfig(configId)
         base.Init(config.entityConfigId, "stand", forward, position)
@@ -35,23 +47,32 @@ public class Unit GameEntity
         OnRemoveUnitEntity(GetHandleID())
         base.Remove(immediately)
         unitPool.Add(this)
-    public Add(Buff buff)
+    public Add(integer buffId, Unit source)
+        var cfg = GetBuffConfig(buffId)
+        if cfg.refresh || cfg.accumulation
+            for var i = 0; i < buffs.Count(); i++
+                var b = Buff& buffs.Get(i)
+                if b.config.id == buffId
+                    b.OnUpdate(source)
+                    return
+        var buff = CreateBuff(cfg)
+        buff.OnCreate(cfg, source, this)
         buffs.Add(buff)
-        buff.Update()
         OnUnitBuffChanged(GetHandleID(), buff.GetHandleID(), true)
-    public bool Accumulation(Buff buff)
-        for var i = 0; i < buffs.Count(); i++
-            var b = Buff& buffs.Get(i)
-            if b.configId == buff.configId && b.source == buff.source
-                b.number++
-                b.Update()
-                OnUnitBuffChanged(GetHandleID(), b.GetHandleID(), true)
-                return false
-        Add(buff)
-        return true
     public Remove(Buff buff)
         OnUnitBuffChanged(GetHandleID(), buff.GetHandleID(), false)
         buffs.Remove(buff)
         buff.Remove()
-    private OnUpdate()
+    public real Hit(Unit source, real damage)//返回真正造成的伤害
+        for var i, var c = 0, onHitEvent.Count(); i < c; i++
+            var e = HitEvent& onHitEvent.Get(i)
+            damage = e(source, damage)
+        var shp = hp
+        hp -= damage
+        if hp < 0
+            hp = 0
+        if shp != hp
+            OnUpdate()
+        return damage
+    public OnUpdate()
         OnUpdateUnitEntity(GetHandleID(), player, unitType, hp, maxHP, mp, maxMP)

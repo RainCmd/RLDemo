@@ -1,21 +1,42 @@
+import GameConfig
+import Collections
+import Utils
 
-internal native OnUpdateBuff(integer id, integer icon, integer number, real startTime, real endTime)
+internal native OnUpdateBuff(integer id, integer config, integer number, real startTime, real endTime)
 internal native OnRemoveBuff(integer id)
 
 public class Buff
-    public integer configId
+    public BuffConfig config
     public Unit owner
     public Unit source
-    public integer icon
     public integer number
     public real startTime
     public real endTime
-    public Buff(integer configId, Unit source)
-        this.configId = configId
+    public OnCreate(BuffConfig cfg, Unit source, Unit owner)
+        this.config = cfg
         this.source = source
-        //todo 初始化buff
-        
-    public Update()
-        OnUpdateBuff(GetHandleID(), icon, number, startTime, endTime)
+        this.owner = owner
+        number = 1
+        startTime = gameTime
+        endTime = cfg.duration
+        Update()
+    public OnUpdate(Unit source)
+        if config.accumulation
+            number++
+        if config.refresh
+            startTime = gameTime
+            endTime = config.duration
+        Update()
+    private Update()
+        OnUpdateBuff(GetHandleID(), config.id, number, startTime, endTime)
+
     public Remove()
         OnRemoveBuff(GetHandleID())
+
+space StrDictionary buffTypeCache = StrDictionary()
+public Buff CreateBuff(BuffConfig cfg)
+    var f, var r = buffTypeCache.TryGet(cfg.logic)
+    if !f
+        r = FindType(cfg.logic, <Buff>)
+        buffTypeCache.Set(cfg.logic, r)
+    return CreateInstance(type& r) as Buff

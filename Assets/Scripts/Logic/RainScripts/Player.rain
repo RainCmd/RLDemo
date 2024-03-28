@@ -14,7 +14,7 @@ public struct Wand
     MagicNode[] magicNodes
     public Magic CreateMagic()
         return global CreateMagic(magicNodes)
-
+        
 public class Player
     public integer id
     public string name
@@ -24,10 +24,17 @@ public class Player
     public integer currentWand = 0
     private List pickList = List()//<MagicNodeEntity>
     private List selectPickList = List()//<MagicNodeEntity>
+    private bool fire = false
+    private real fireDir
     public Player(integer id)
         this.id = id
         for var i = 0; i < wands.GetLength(); i++
             wands[i] = Wand(0, 0, MagicNode[WAND_SLOT_SIZE])
+        start PlayerMainLoop()
+    private PlayerMainLoop()
+        while
+            wait
+            FireLoop()
     public PickMagicNode(MagicNode node)
         if node.nodeEntity != null
             if (node.nodeEntity.position - hero.position).xz.SqrMagnitude() < PICK_RANGE * PICK_RANGE
@@ -69,36 +76,47 @@ public class Player
             var mne = MagicNodeEntity& selectPickList.Get(i)
             OnPlayerMagicNodePickListChanged(id, mne.node.GetHandleID(), true)
             pickList.Add(mne)
+    private FireLoop()
+        if fire && wands[currentWand].cdEndTime < gameTime
+            var magic = wands[currentWand].CreateMagic()
+            if magic.nexts.Count() == 0
+                return//无效的法术
+            var cd, var mc = magic.CalcCost()
+            if hero.mp < mc
+                return//魔法不足
+            var nodes = wands[currentWand].magicNodes
+            for var i = 0; i < nodes.GetLength(); i++
+                var node = nodes[i]
+                if node.number > 0
+                    var cnt = magic.GetNodeCount(node)
+                    if cnt > 0
+                        node.number -= cnt
+                        if node.number == 0
+                            nodes[i] = null
+                            OnPlayerWandMagicNodeChanged(id, currentWand, 0, i)
+                            node.Remove()
+                        else
+                            node.OnUpdate()
+            for var i = 0; i < magic.nexts.Count(); i++
+                var m = Magic& magic.nexts.Get(i)
+                CreateMissileMagicNode(hero, m.missile.node.config).OnStart(m, fireDir)
+            wands[currentWand].cdStartTime = gameTime
+            wands[currentWand].cdEndTime = gameTime + cd
+            OnPlayerWandCDUpdate(id, currentWand, gameTime, gameTime + cd)
+            hero.mp -= mc
+            hero.OnUpdate()
+
 //region 操作
     public OnRocker(real dir, real dis)//dir[-π,π] dis[0,1]
         //拖动摇杆移动
     public OnFire(real dir)//dir[-π,π]
         //开火
-        var magic = wands[currentWand].CreateMagic()
-        if magic.nexts.Count() == 0
-            return//无效的法术
-        var cd, var mc = magic.CalcCost()
-        if hero.mp < mc
-            return//魔法不足
-        var nodes = wands[currentWand].magicNodes
-        for var i = 0; i < nodes.GetLength(); i++
-            var node = nodes[i]
-            if node.number > 0
-                var cnt = magic.GetNodeCount(node)
-                if cnt > 0
-                    node.number -= cnt
-                    if node.number == 0
-                        nodes[i] = null
-                        OnPlayerWandMagicNodeChanged(id, currentWand, 0, i)
-                        node.Remove()
-                    else
-                        node.OnUpdate()
-        for var i = 0; i < magic.nexts.Count(); i++
-            var m = Magic& magic.nexts.Get(i)
-            CreateMissileMagicNode(hero, m.missile.node.config).OnStart(m, dir)
+        fireDir = dir
+        fire = true
 
     public OnStopFire()
         //停止开火
+        fire = false
     public OnSwitchWeapon(integer weapon)
         currentWand = weapon
         OnPlayerWandChanged(id, currentWand)
