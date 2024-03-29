@@ -1,0 +1,5 @@
+namespace CustomMagicNodes
+    public class Fireball MissileMagicNode
+        private GameEntity gameEntity
+        public OnStart()
+            //

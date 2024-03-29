@@ -13,13 +13,6 @@ public class LogicConfigEditor : EditorWindow
     private IList list;
     private string path;
     private HashSet<int> fold = new HashSet<int>();
-    private void Init(Type type, IList list, string path)
-    {
-        this.type = type;
-        this.list = list;
-        this.path = path;
-        fold.Clear();
-    }
     private object Draw(string label, object value, Type type)
     {
         if (type == typeof(bool))
@@ -91,6 +84,11 @@ public class LogicConfigEditor : EditorWindow
     private Vector2 scroll;
     private void OnGUI()
     {
+        if (type == null)
+        {
+            EditorGUILayout.LabelField("无效的类型", EditorStyles.largeLabel);
+            return;
+        }
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("保存", EditorStyles.toolbarButton, GUILayout.Width(48)))
         {
@@ -98,7 +96,7 @@ public class LogicConfigEditor : EditorWindow
         }
         if (GUILayout.Button(path, EditorStyles.toolbarButton, GUILayout.ExpandWidth(true)))
         {
-            var cfg = AssetDatabase.LoadAssetAtPath("Assets/StreamingAssets" + path, typeof(UnityEngine.Object));
+            var cfg = AssetDatabase.LoadAssetAtPath("Assets/Resources/" + path, typeof(UnityEngine.Object));
             if (cfg != null) EditorGUIUtility.PingObject(cfg);
         }
         EditorGUILayout.BeginHorizontal();
@@ -132,7 +130,7 @@ public class LogicConfigEditor : EditorWindow
                 {
                     desc = "[{0}] {1}".Format(id, field_name.GetValue(value));
                 }
-                else if (field_id != null) desc = "[{0}]".Format(desc);
+                else if (field_id != null) desc = "[{0}]".Format(id);
                 else if (field_name != null) desc = field_name.GetValue(value).ToString();
             }
             var r = EditorGUILayout.Foldout(f, i.ToString() + "  " + desc);
@@ -167,8 +165,8 @@ public class LogicConfigEditor : EditorWindow
         var window = CreateInstance<LogicConfigEditor>();
         window.titleContent = new GUIContent("逻辑配置", EditorGUIUtility.IconContent("MetaFile Icon").image);
         window.type = typeof(T);
-        window.list = LogicConfig.Load(path);
         window.path = path;
+        window.list = LogicConfig.Load(path);
         window.Show();
     }
     [MenuItem("配置文件/逻辑配置/魔法节点")]

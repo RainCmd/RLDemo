@@ -3,6 +3,8 @@ using System.IO;
 using UnityEngine;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections;
+using System.Runtime.InteropServices.ComTypes;
+using UnityEditor;
 
 public static class LogicConfig
 {
@@ -26,13 +28,13 @@ public static class LogicConfig
     }
     public static IList Load(string path)
     {
-        path = LocalPathToGlobalPath(path);
-        if (File.Exists(path))
+        var cfg = Resources.Load<TextAsset>(path.Substring(0, path.LastIndexOf('.')));
+        if (cfg)
         {
-            using (var stream = File.OpenRead(path))
+            using (var ms = new MemoryStream(cfg.bytes))
             {
                 var bf = new BinaryFormatter();
-                return bf.Deserialize(stream) as IList;
+                return bf.Deserialize(ms) as IList;
             }
         }
         return null;
@@ -50,6 +52,7 @@ public static class LogicConfig
             var bf = new BinaryFormatter();
             bf.Serialize(stream, cfgs);
         }
+        AssetDatabase.Refresh();
     }
 #endif
 }

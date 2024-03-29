@@ -13,6 +13,7 @@ public class MissileMagicNode MagicNodeInstance
     private Magic magic
     public real dir
     public List alters = List()//<AlterMagicNode>
+    public real3 position
     public OnStart(Magic magic, real dir)
         this.magic = magic
         for var i = 0; i < magic.alters.Count(); i++
@@ -21,10 +22,11 @@ public class MissileMagicNode MagicNodeInstance
             dir = alter.GetDir(dir, info.index)
             alters.Add(alter)
         this.dir = dir
+        position = creater.position
+        start OnStart()
         for var i = 0; i < alters.Count(); i++
             var alter = AlterMagicNode& alters.Get(i)
             start alter.OnStart(this)
-        start OnStart()
     public OnStart()
     public OnHit(Unit target)
         for var i = 0; i < alters.Count(); i++

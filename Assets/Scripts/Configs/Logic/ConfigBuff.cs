@@ -27,5 +27,5 @@ public struct ConfigBuff
     /// </summary>
     public Real duration;
     public string logic;
-    public const string Path = "/Configs/Logic/Buff.cfg";
+    public const string Path = "Configs/Logic/Buff.bytes";
 }

@@ -20,5 +20,5 @@ public struct ConfigUnit
     public Real hp;
     public Real mp;
     public Real speed;
-    public const string Path = "/Configs/Logic/Unit.cfg";
+    public const string Path = "Configs/Logic/Unit.bytes";
 }
