@@ -1,5 +1,6 @@
 import GameConfig
 import Collections
+import kernel.Math
 
 internal native OnUpdateUnitEntity(integer id, integer player, UnitType unitType, real hp, real maxHP, real mp, real maxMP)
 internal native OnRemoveUnitEntity(integer id)
@@ -21,7 +22,10 @@ public DamageUnit(Unit source, real damage, Unit target)
         damage = e(source, damage, target)
     target.Hit(source, damage)
     
+public const string UNIT_ANIM_IDLE = "idle"
+public const string UNIT_ANIM_MOVE = "move"
 public delegate real HitEvent(Unit source, real damage)//返回修正后的伤害值
+space task UnitMoveTask
 public class Unit GameEntity
     public integer player
     public UnitType unitType
@@ -30,8 +34,10 @@ public class Unit GameEntity
     public real mp
     public real maxMP
     public real moveSpeed
+    public real3 targetPosition
     public List buffs = List()//<Buff>
     public List onHitEvent = List()//<HitEvent>
+    private UnitMoveTask moveTask
     public Init(integer configId, integer player, real3 forward, real3 position)
         var config = GetUnitConfig(configId)
         base.Init(config.entityConfigId, "stand", forward, position)
@@ -55,8 +61,7 @@ public class Unit GameEntity
                 if b.config.id == buffId
                     b.OnUpdate(source)
                     return
-        var buff = CreateBuff(cfg)
-        buff.OnCreate(cfg, source, this)
+        var buff = CreateBuff(cfg, source, this)
         buffs.Add(buff)
         OnUnitBuffChanged(GetHandleID(), buff.GetHandleID(), true)
     public Remove(Buff buff)
@@ -74,5 +79,36 @@ public class Unit GameEntity
         if shp != hp
             OnUpdate()
         return damage
+    public Goto(real3 target)
+        targetPosition = target
+        if moveTask == null
+            moveTask = start MoveTask()
+            ShowAnim(UNIT_ANIM_MOVE)
+    public RockMove(real dir, real dis)//dir[-π,π] dis[0,1]
+        if moveTask != null
+            moveTask.Abort("RockMove")
+            moveTask = null
+        ShowAnim(UNIT_ANIM_MOVE)
+        var forward = real3(Cos(dir), Sin(dir), 0)
+        Move(forward, position + moveSpeed * LOGIC_TIMESTEP * dis * forward)
+    public StopMove()
+        if moveTask != null
+            moveTask.Abort("StopMove")
+            ShowAnim(UNIT_ANIM_IDLE)
+            moveTask = null
+    private MoveTask()
+        while
+            var forward = targetPosition - position
+            var sqrDis = forward.SqrMagnitude()
+            forward = forward.Normalized()
+            var step = moveSpeed * LOGIC_TIMESTEP
+            if sqrDis < step * step
+                Move(forward, targetPosition)
+                break
+            else
+                Move(forward, position + forward * step)
+            wait
+        ShowAnim(UNIT_ANIM_IDLE)
+        moveTask = null
     public OnUpdate()
         OnUpdateUnitEntity(GetHandleID(), player, unitType, hp, maxHP, mp, maxMP)

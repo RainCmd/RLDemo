@@ -1,0 +1,7 @@
+namespace Utils
+    import kernel.Math
+    public real3 DirToForward(real dir)
+        var s, var c = SinCos(dir)
+        return real3(c, s, 0)
+    public real ForwardToDir(real3 forward)
+        return Atan2(forward.y, forward.x)

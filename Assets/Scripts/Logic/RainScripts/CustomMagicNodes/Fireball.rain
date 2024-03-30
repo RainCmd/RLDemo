@@ -1,5 +1,12 @@
 namespace CustomMagicNodes
+    import Utils
     public class Fireball MissileMagicNode
         private GameEntity gameEntity
         public OnStart()
             //
+            gameEntity = GameEntity()
+            gameEntity.Init('EB_fire', "stand", velocity, position)
+            while
+                wait
+                position += velocity
+                gameEntity.Move(velocity, position)

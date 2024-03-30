@@ -26,6 +26,8 @@ public class Player
     private List selectPickList = List()//<MagicNodeEntity>
     private bool fire = false
     private real fireDir
+    private real rockDir
+    private real rockDis
     public Player(integer id)
         this.id = id
         for var i = 0; i < wands.GetLength(); i++
@@ -35,6 +37,8 @@ public class Player
         while
             wait
             FireLoop()
+            MoveLoop()
+
     public PickMagicNode(MagicNode node)
         if node.nodeEntity != null
             if (node.nodeEntity.position - hero.position).xz.SqrMagnitude() < PICK_RANGE * PICK_RANGE
@@ -105,10 +109,16 @@ public class Player
             OnPlayerWandCDUpdate(id, currentWand, gameTime, gameTime + cd)
             hero.mp -= mc
             hero.OnUpdate()
-
+    private MoveLoop()
+        if rockDis > .1
+            hero.RockMove(rockDir, rockDis)
+        else
+            hero.StopMove()
 //region 操作
     public OnRocker(real dir, real dis)//dir[-π,π] dis[0,1]
         //拖动摇杆移动
+        rockDir = dir
+        rockDis = dis
     public OnFire(real dir)//dir[-π,π]
         //开火
         fireDir = dir

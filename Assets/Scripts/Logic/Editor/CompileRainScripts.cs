@@ -29,14 +29,26 @@ public class CompileRainScripts
     }
     private static byte[] LoadLibrary(string name)
     {
-        var asset = Resources.Load<TextAsset>("RainLibraries/" + name + ".lib");
-        if (asset) return asset.bytes;
-        return new byte[0];
+        var path = dataPath + "/Resources/RainLibraries/" + name + ".lib";
+        if (File.Exists(path))
+        {
+            using (var fs = File.OpenRead(path))
+            {
+                var result = new byte[fs.Length];
+                fs.Read(result, 0, result.Length);
+                return result;
+            }
+        }
+        else
+        {
+            Debug.LogError("lib加载失败：\n" + path);
+            return null;
+        }
     }
     private static readonly string dataPath = Application.dataPath;
     private static readonly string scriptsPath = dataPath + "/Scripts/Logic/RainScripts/";
-    private static readonly string libraryPath = dataPath + "/Resources/RainLibraries/" + Config.GameName + ".lib.bytes";
-    private static readonly string pdbPath = dataPath + "/RainProgramDatabase/" + Config.GameName + ".pdb.bytes";
+    private static readonly string libraryPath = dataPath + "/Resources/RainLibraries/" + Config.GameName + ".lib";
+    private static readonly string pdbPath = dataPath + "/RainProgramDatabase/" + Config.GameName + ".pdb";
     private struct LogMsg
     {
         public Action<object, Object> action;
@@ -129,7 +141,7 @@ public class CompileRainScripts
                     using (var rb = product.GetLibrary().Serialize()) SaveData(rb, libraryPath);
                     compileState = "保存pdb";
                     using (var rb = product.GetProgramDatabase().Serialize()) SaveData(rb, pdbPath);
-                    EnqueueLogMsg(Debug.Log, $"Assets/Resources/RainLibraries/{Config.GameName}.lib.bytes", $"<color=#00ff00>雨言编译成功</color>，耗时<color=#ffcc00>{sw.ElapsedMilliseconds}</color>ms");
+                    EnqueueLogMsg(Debug.Log, $"Assets/Resources/RainLibraries/{Config.GameName}.lib", $"<color=#00ff00>雨言编译成功</color>，耗时<color=#ffcc00>{sw.ElapsedMilliseconds}</color>ms");
                 }
             }
             compileState = "编译完成";

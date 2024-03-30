@@ -115,14 +115,14 @@ namespace RainLanguage
         LOGGER_LEVEL1_REPEATED_ATTRIBUTE,       //重复的属性
 
         LOGGER_LEVEL2 = RainErrorLevel.LoggerLevel2 << 24,
-
-        LOGGER_LEVEL3 = RainErrorLevel.LoggerLevel3 << 24,
-
-        LOGGER_LEVEL4 = RainErrorLevel.LoggerLevel4 << 24,
-        LOGGER_LEVEL4_MISSING_VISIBILITY,       //可访问性修饰缺失，将使用默认可访问性修饰
-        LOGGER_LEVEL4_UNTREATED_KERNEL_SPECIAL_FUNCTION,            //未处理的核心特殊函数
         LOGGER_LEVEL4_DISCARDED_EXPRESSION,     //丢弃的表达式
         LOGGER_LEVEL4_INACCESSIBLE_STATEMENT,   //无法访问的语句
+
+        LOGGER_LEVEL3 = RainErrorLevel.LoggerLevel3 << 24,
+        LOGGER_LEVEL4_MISSING_VISIBILITY,       //可访问性修饰缺失，将使用默认可访问性修饰
+
+        LOGGER_LEVEL4 = RainErrorLevel.LoggerLevel4 << 24,
+        LOGGER_LEVEL4_UNTREATED_KERNEL_SPECIAL_FUNCTION,            //未处理的核心特殊函数
 
         INVALID = 0xFFFFFFFF
     }
@@ -833,6 +833,7 @@ namespace RainLanguage
             ~RainLibrary() { Dispose(); }
             public static RainLibrary Create(byte[] data)
             {
+                if (data == null) return null;
                 fixed (byte* pdata = data) return new RainLibrary(DeserializeRainLibrary(pdata, (uint)data.Length));
             }
             [DllImport(RainLanguageDLLName, EntryPoint = "Extern_SerializeRainLibrary", CallingConvention = CallingConvention.Cdecl)]
@@ -869,6 +870,7 @@ namespace RainLanguage
             ~RainProgramDatabase() { Dispose(); }
             public static RainProgramDatabase Create(byte[] data)
             {
+                if (data == null) return null;
                 fixed (byte* pdata = data) return new RainProgramDatabase(DeserializeRainProgramDatabase(pdata, (uint)data.Length));
             }
             [DllImport(RainLanguageDLLName, EntryPoint = "Extern_SerializeRainProgramDatabase", CallingConvention = CallingConvention.Cdecl)]
@@ -1938,8 +1940,9 @@ namespace RainLanguage
                     new CodeLoadHelper(parameter.files).LoadNext,
                     libName =>
                     {
-                        var data = parameter.liibraryLoader(NativeString.GetString(libName));
-                        return RainLibrary.Create(data).GetSource();
+                        var lib = RainLibrary.Create(parameter.liibraryLoader(NativeString.GetString(libName)));
+                        if (lib == null) return null;
+                        return lib.GetSource();
                     }, (uint)parameter.errorLevel)));
             }
         }
@@ -1955,8 +1958,9 @@ namespace RainLanguage
                     (kernel, entity) => startupParameter.onReleaseEntity(new RainKernelCopy(kernel), entity),
                     libName =>
                     {
-                        var data = startupParameter.libraryLoader(NativeString.GetString(libName));
-                        return RainLibrary.Create(data).GetSource();//可能会因为触发gc导致数据在加载完成之前被回收
+                        var lib = RainLibrary.Create(startupParameter.libraryLoader(NativeString.GetString(libName)));
+                        if (lib == null) return null;
+                        return lib.GetSource();//可能会因为触发gc导致数据在加载完成之前被回收
                     },
                     (kernel, fullName, parameters, parameterCount) =>
                     {
@@ -1973,8 +1977,9 @@ namespace RainLanguage
                     },
                     libName =>
                     {
-                        var data = startupParameter.programDatabaseLoader(NativeString.GetString(libName));
-                        return RainProgramDatabase.Create(data).GetSource();//可能会因为触发gc导致数据在加载完成之前被回收
+                        var pdb = RainProgramDatabase.Create(startupParameter.programDatabaseLoader(NativeString.GetString(libName)));
+                        if (pdb == null) return null;
+                        return pdb.GetSource();//可能会因为触发gc导致数据在加载完成之前被回收
                     }
                     )));
         }

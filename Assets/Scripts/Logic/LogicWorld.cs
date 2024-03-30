@@ -161,6 +161,7 @@ public class LogicWorld : IDisposable
         this.ctrlIds = ctrlIds;
         var asset = Resources.Load<TextAsset>("RainLibraries/RLDemo.lib");
         var lib = RainLib.Create(asset.bytes);
+        if (lib == null) throw new NullReferenceException("逻辑世界lib加载失败");
         var libs = new RainLib[] { lib };
         var parameter = new StartupParameter(libs, seed, 0xff, 0xff,
             OnReferenceEntity, OnReleaseEntity,

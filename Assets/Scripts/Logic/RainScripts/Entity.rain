@@ -59,7 +59,8 @@ public class GameEntity
         OnUpdateEntityTransform(GetHandleID(), forward, position, immediately)
         this->OnUpdate()
     public ShowAnim(string anim)
-        this.anim = anim
-        this->OnUpdate()
+        if anim != "" && anim != this.anim
+            this.anim = anim
+            this->OnUpdate()
     private OnUpdate()
         OnUpdateEntity(GetHandleID(), resource, anim, forward, position)

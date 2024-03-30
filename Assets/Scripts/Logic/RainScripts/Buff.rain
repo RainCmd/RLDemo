@@ -12,31 +12,35 @@ public class Buff
     public integer number
     public real startTime
     public real endTime
-    public OnCreate(BuffConfig cfg, Unit source, Unit owner)
-        this.config = cfg
-        this.source = source
-        this.owner = owner
-        number = 1
-        startTime = gameTime
-        endTime = cfg.duration
-        Update()
+    public OnCreate()
+    public OnRemove()
     public OnUpdate(Unit source)
         if config.accumulation
             number++
         if config.refresh
             startTime = gameTime
             endTime = config.duration
-        Update()
-    private Update()
+        this->Update()
+    public Update()
         OnUpdateBuff(GetHandleID(), config.id, number, startTime, endTime)
 
     public Remove()
+        OnRemove()
         OnRemoveBuff(GetHandleID())
 
 space StrDictionary buffTypeCache = StrDictionary()
-public Buff CreateBuff(BuffConfig cfg)
+public Buff CreateBuff(BuffConfig cfg, Unit source, Unit target)
     var f, var r = buffTypeCache.TryGet(cfg.logic)
     if !f
         r = FindType(cfg.logic, <Buff>)
         buffTypeCache.Set(cfg.logic, r)
-    return CreateInstance(type& r) as Buff
+    var result = CreateInstance(type& r) as Buff
+    result.config = cfg
+    result.source = source
+    result.owner = target
+    result.number = 1
+    result.startTime = gameTime
+    result.endTime = gameTime + cfg.duration
+    result.OnCreate()
+    result->Update()
+    return result
