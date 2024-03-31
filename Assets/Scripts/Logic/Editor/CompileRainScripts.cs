@@ -47,8 +47,8 @@ public class CompileRainScripts
     }
     private static readonly string dataPath = Application.dataPath;
     private static readonly string scriptsPath = dataPath + "/Scripts/Logic/RainScripts/";
-    private static readonly string libraryPath = dataPath + "/Resources/RainLibraries/" + Config.GameName + ".lib";
-    private static readonly string pdbPath = dataPath + "/RainProgramDatabase/" + Config.GameName + ".pdb";
+    private static readonly string libraryPath = dataPath + "/Resources/RainLibraries/" + Config.GameName + ".lib.bytes";
+    private static readonly string pdbPath = dataPath + "/Resources/RainProgramDatabase/" + Config.GameName + ".pdb.bytes";
     private struct LogMsg
     {
         public Action<object, Object> action;

@@ -61,270 +61,277 @@ public class RoomServer : IRoom
         var readerBuffer = new byte[2048];
         var writerBuffer = new byte[2048];
         var ip = new IPEndPoint(IPAddress.Any, 0);
-        while (!_disposed)
+        try
         {
-            EndPoint remote = ip;
-            var size = socket.ReceiveFrom(readerBuffer, ref remote);
-            var rip = (IPEndPoint)remote;
-            var reader = new ProtoReader(readerBuffer, size);
-            if (reader.valid)
+            while (!_disposed)
             {
-                var guid = reader.ReadGuid();
-                if (guid == info.id)
+                EndPoint remote = ip;
+                var size = socket.ReceiveFrom(readerBuffer, ref remote);
+                var rip = (IPEndPoint)remote;
+                var reader = new ProtoReader(readerBuffer, size);
+                if (reader.valid)
                 {
-                    switch (reader.ReadRoomProto())
+                    var guid = reader.ReadGuid();
+                    if (guid == info.id)
                     {
-                        case RoomProto.SHallDelayTest:
-                            {
-                                if (State != RoomState.Ready) break;
-                                var writer = new ProtoWriter(writerBuffer);
-                                writer.Write(guid);
-                                writer.Write(HallProto.DelayTest);
-                                writer.Write(reader.ReadLong());
-                                writer.Send(socket, rip);
-                            }
-                            break;
-                        case RoomProto.CHeartbeat: break;
-                        case RoomProto.SHeartbeatRes:
-                            {
-                                var id = reader.ReadGuid();
-                                lock (info.members)
+                        switch (reader.ReadRoomProto())
+                        {
+                            case RoomProto.SHallDelayTest:
                                 {
-                                    var idx = info.members.FindIndex(v => v.player.id == id);
-                                    if (idx >= 0)
-                                    {
-                                        var member = info.members[idx];
-                                        member.delay = Tool.GetDelay(reader.ReadLong());
-                                        member.Update();
-                                        info.members[idx] = member;
-                                        lock (dirtyPlayers) dirtyPlayers.Add(id);
-                                    }
-                                    else Reject(rip, writerBuffer);
-                                }
-                            }
-                            break;
-                        case RoomProto.SRoomMsg:
-                            {
-                                var id = reader.ReadGuid();
-                                var msg = reader.ReadString();
-                                PlayerInfo player;
-                                lock (info.members)
-                                {
-                                    var idx = info.members.FindIndex(v => v.player.id == id);
-                                    if (idx < 0)
-                                    {
-                                        Reject(rip, writerBuffer);
-                                        break;
-                                    }
+                                    if (State != RoomState.Ready) break;
                                     var writer = new ProtoWriter(writerBuffer);
                                     writer.Write(guid);
-                                    writer.Write(RoomProto.CRoomMsg);
-                                    writer.Write(id);
-                                    writer.Write(msg);
-                                    Broadcast(writer);
-                                    player = info.members[idx].player;
+                                    writer.Write(HallProto.DelayTest);
+                                    writer.Write(reader.ReadLong());
+                                    writer.Send(socket, rip);
                                 }
-                                OnRecvMsg?.Invoke(player, msg);
-                            }
-                            break;
-                        case RoomProto.CRoomMsg: break;
-                        case RoomProto.SJoinReq:
-                            {
-                                if (State != RoomState.Ready) break;
-                                var writer = new ProtoWriter(writerBuffer);
-                                writer.Write(guid);
-                                writer.Write(HallProto.JoinRes);
-                                writer.Write(info.name);
-                                writer.Write(info.owner);
-                                writer.Write(info.ctrlId);
-                                lock (info.members)
+                                break;
+                            case RoomProto.CHeartbeat: break;
+                            case RoomProto.SHeartbeatRes:
                                 {
-                                    writer.Write(info.members.Count);
-                                    foreach (var member in info.members) writer.Write(member);
-                                }
-                                writer.Send(socket, rip);
-                            }
-                            break;
-                        case RoomProto.SJoin:
-                            {
-                                if (State != RoomState.Ready)
-                                {
-                                    Reject(rip, writerBuffer);
-                                    break;
-                                }
-                                var player = reader.ReadPlayerInfo();
-                                RoomInfo.MemberInfo member;
-                                lock (info.members)
-                                {
-                                    var idx = info.members.FindIndex(v => v.player.id == player.id);
-                                    if (idx < 0)
-                                    {
-                                        member = new RoomInfo.MemberInfo(player, rip,
-                                            ctrlIdPool.Count > 0 ? ctrlIdPool.Pop() : ctrlIdx++,    //理论上应该由玩家自己选择控制id，这里简化成自动分配了
-                                            false, 0);
-                                        info.members.Add(member);
-                                        var writer = new ProtoWriter(writerBuffer);
-                                        writer.Write(guid);
-                                        writer.Write(RoomProto.CEntryPlayer);
-                                        writer.Write(player);
-                                        Broadcast(writer);
-                                    }
-                                    else
-                                    {
-                                        member = info.members[idx];
-                                        member.player = player;
-                                        info.members[idx] = member;
-                                        lock (dirtyPlayers) dirtyPlayers.Add(player.id);
-                                    }
-                                }
-                                OnUpdateMember?.Invoke(member);
-                            }
-                            break;
-                        case RoomProto.SLeave:
-                            {
-                                var id = reader.ReadGuid();
-                                lock (info.members)
-                                {
-                                    var idx = info.members.FindIndex(v => v.player.id == id);
-                                    if (idx < 0)
-                                    {
-                                        Reject(rip, writerBuffer);
-                                        break;
-                                    }
-                                    if (State == RoomState.Ready)
-                                    {
-                                        ctrlIdPool.Push(info.members[idx].ctrlId);
-                                        info.members.RemoveAt(idx);
-                                        var writer = new ProtoWriter(writerBuffer);
-                                        writer.Write(guid);
-                                        writer.Write(RoomProto.CRemovePlayer);
-                                        writer.Write(id);
-                                        Broadcast(writer);
-                                    }
-                                    else
-                                    {
-                                        var member = info.members[idx];
-                                        member.ready = false;
-                                        info.members[idx] = member;
-                                        lock (dirtyPlayers) dirtyPlayers.Add(id);
-                                    }
-                                }
-                                OnRemovePlayerInfo?.Invoke(id);
-                            }
-                            break;
-                        case RoomProto.CEntryPlayer: break;
-                        case RoomProto.CUpdatePlayer: break;
-                        case RoomProto.CRemovePlayer: break;
-                        case RoomProto.CDissolve: break;
-                        case RoomProto.CReject: break;
-                        case RoomProto.SReady:
-                            {
-                                if (State != RoomState.Ready) break;
-                                var id = reader.ReadGuid();
-                                lock (info.members)
-                                {
-                                    var idx = info.members.FindIndex(v => v.player.id == id);
-                                    if (idx < 0) Reject(rip, writerBuffer);
-                                    else if (!info.members[idx].ready)
-                                    {
-                                        var member = info.members[idx];
-                                        member.ready = true;
-                                        info.members[idx] = member;
-                                        lock (dirtyPlayers) dirtyPlayers.Add(id);
-                                    }
-                                }
-                            }
-                            break;
-                        case RoomProto.SCancelReady:
-                            {
-                                if (State != RoomState.Ready) break;
-                                var id = reader.ReadGuid();
-                                lock (info.members)
-                                {
-                                    var idx = info.members.FindIndex(v => v.player.id == id);
-                                    if (idx < 0) Reject(rip, writerBuffer);
-                                    else if (info.members[idx].ready)
-                                    {
-                                        var member = info.members[idx];
-                                        member.ready = false;
-                                        info.members[idx] = member;
-                                        lock (dirtyPlayers) dirtyPlayers.Add(id);
-                                    }
-                                }
-                            }
-                            break;
-                        case RoomProto.CStartGame: break;
-                        case RoomProto.SStartGameRes:
-                            {
-                                var id = reader.ReadGuid();
-                                lock (started) started.Remove(id);
-                            }
-                            break;
-                        case RoomProto.SLoading:
-                            {
-                                if (State != RoomState.Loading) break;
-                                var id = reader.ReadGuid();
-                                var progress = reader.ReadFloat();
-                                lock (started) started.Remove(id);
-                                lock (loadingProgress)
+                                    var id = reader.ReadGuid();
                                     lock (info.members)
                                     {
                                         var idx = info.members.FindIndex(v => v.player.id == id);
-                                        if (idx >= 0) loadingProgress[idx] = progress;
-                                    }
-                                OnUpdatePlayerLoading?.Invoke(id, progress);
-                            }
-                            break;
-                        case RoomProto.CLoading: break;
-                        case RoomProto.CEntryGame: break;
-                        case RoomProto.SEntryGameRes:
-                            {
-                                var id = reader.ReadGuid();
-                                lock (entered) entered.Remove(id);
-                            }
-                            break;
-                        case RoomProto.SOperator:
-                            {
-                                if (State != RoomState.Game) break;
-                                var id = reader.ReadGuid();
-                                lock (entered) entered.Remove(id);
-
-                                var lackCount = reader.ReadInt();
-                                if (lackCount > 0)
-                                {
-                                    var writer = new ProtoWriter(writerBuffer);
-                                    writer.Write(info.id);
-                                    writer.Write(RoomProto.COperator);
-                                    writer.Write(Frame);
-                                    lock (frameOperators)
-                                    {
-                                        lacks.Clear();
-                                        while (lackCount-- > 0)
-                                            if (TryFindFrameOperators(reader.ReadLong(), out FrameOperator frameOperator))
-                                                lacks.Add(frameOperator);
-                                    }
-                                    writer.Write(lacks.Count);
-                                    foreach (var lack in lacks)
-                                    {
-                                        writer.Write(lack.frame);
-                                        writer.Write(lack.operators.Count);
-                                        foreach (var item in lack.operators)
+                                        if (idx >= 0)
                                         {
-                                            writer.Write(item.ctrlId);
-                                            writer.Write(item.oper);
+                                            var member = info.members[idx];
+                                            member.delay = Tool.GetDelay(reader.ReadLong());
+                                            member.Update();
+                                            info.members[idx] = member;
+                                            lock (dirtyPlayers) dirtyPlayers.Add(id);
                                         }
+                                        else Reject(rip, writerBuffer);
+                                    }
+                                }
+                                break;
+                            case RoomProto.SRoomMsg:
+                                {
+                                    var id = reader.ReadGuid();
+                                    var msg = reader.ReadString();
+                                    PlayerInfo player;
+                                    lock (info.members)
+                                    {
+                                        var idx = info.members.FindIndex(v => v.player.id == id);
+                                        if (idx < 0)
+                                        {
+                                            Reject(rip, writerBuffer);
+                                            break;
+                                        }
+                                        var writer = new ProtoWriter(writerBuffer);
+                                        writer.Write(guid);
+                                        writer.Write(RoomProto.CRoomMsg);
+                                        writer.Write(id);
+                                        writer.Write(msg);
+                                        Broadcast(writer);
+                                        player = info.members[idx].player;
+                                    }
+                                    OnRecvMsg?.Invoke(player, msg);
+                                }
+                                break;
+                            case RoomProto.CRoomMsg: break;
+                            case RoomProto.SJoinReq:
+                                {
+                                    if (State != RoomState.Ready) break;
+                                    var writer = new ProtoWriter(writerBuffer);
+                                    writer.Write(guid);
+                                    writer.Write(HallProto.JoinRes);
+                                    writer.Write(info.name);
+                                    writer.Write(info.owner);
+                                    writer.Write(info.ctrlId);
+                                    lock (info.members)
+                                    {
+                                        writer.Write(info.members.Count);
+                                        foreach (var member in info.members) writer.Write(member);
                                     }
                                     writer.Send(socket, rip);
                                 }
+                                break;
+                            case RoomProto.SJoin:
+                                {
+                                    if (State != RoomState.Ready)
+                                    {
+                                        Reject(rip, writerBuffer);
+                                        break;
+                                    }
+                                    var player = reader.ReadPlayerInfo();
+                                    RoomInfo.MemberInfo member;
+                                    lock (info.members)
+                                    {
+                                        var idx = info.members.FindIndex(v => v.player.id == player.id);
+                                        if (idx < 0)
+                                        {
+                                            member = new RoomInfo.MemberInfo(player, rip,
+                                                ctrlIdPool.Count > 0 ? ctrlIdPool.Pop() : ctrlIdx++,    //理论上应该由玩家自己选择控制id，这里简化成自动分配了
+                                                false, 0);
+                                            info.members.Add(member);
+                                            var writer = new ProtoWriter(writerBuffer);
+                                            writer.Write(guid);
+                                            writer.Write(RoomProto.CEntryPlayer);
+                                            writer.Write(player);
+                                            Broadcast(writer);
+                                        }
+                                        else
+                                        {
+                                            member = info.members[idx];
+                                            member.player = player;
+                                            info.members[idx] = member;
+                                            lock (dirtyPlayers) dirtyPlayers.Add(player.id);
+                                        }
+                                    }
+                                    OnUpdateMember?.Invoke(member);
+                                }
+                                break;
+                            case RoomProto.SLeave:
+                                {
+                                    var id = reader.ReadGuid();
+                                    lock (info.members)
+                                    {
+                                        var idx = info.members.FindIndex(v => v.player.id == id);
+                                        if (idx < 0)
+                                        {
+                                            Reject(rip, writerBuffer);
+                                            break;
+                                        }
+                                        if (State == RoomState.Ready)
+                                        {
+                                            ctrlIdPool.Push(info.members[idx].ctrlId);
+                                            info.members.RemoveAt(idx);
+                                            var writer = new ProtoWriter(writerBuffer);
+                                            writer.Write(guid);
+                                            writer.Write(RoomProto.CRemovePlayer);
+                                            writer.Write(id);
+                                            Broadcast(writer);
+                                        }
+                                        else
+                                        {
+                                            var member = info.members[idx];
+                                            member.ready = false;
+                                            info.members[idx] = member;
+                                            lock (dirtyPlayers) dirtyPlayers.Add(id);
+                                        }
+                                    }
+                                    OnRemovePlayerInfo?.Invoke(id);
+                                }
+                                break;
+                            case RoomProto.CEntryPlayer: break;
+                            case RoomProto.CUpdatePlayer: break;
+                            case RoomProto.CRemovePlayer: break;
+                            case RoomProto.CDissolve: break;
+                            case RoomProto.CReject: break;
+                            case RoomProto.SReady:
+                                {
+                                    if (State != RoomState.Ready) break;
+                                    var id = reader.ReadGuid();
+                                    lock (info.members)
+                                    {
+                                        var idx = info.members.FindIndex(v => v.player.id == id);
+                                        if (idx < 0) Reject(rip, writerBuffer);
+                                        else if (!info.members[idx].ready)
+                                        {
+                                            var member = info.members[idx];
+                                            member.ready = true;
+                                            info.members[idx] = member;
+                                            lock (dirtyPlayers) dirtyPlayers.Add(id);
+                                        }
+                                    }
+                                }
+                                break;
+                            case RoomProto.SCancelReady:
+                                {
+                                    if (State != RoomState.Ready) break;
+                                    var id = reader.ReadGuid();
+                                    lock (info.members)
+                                    {
+                                        var idx = info.members.FindIndex(v => v.player.id == id);
+                                        if (idx < 0) Reject(rip, writerBuffer);
+                                        else if (info.members[idx].ready)
+                                        {
+                                            var member = info.members[idx];
+                                            member.ready = false;
+                                            info.members[idx] = member;
+                                            lock (dirtyPlayers) dirtyPlayers.Add(id);
+                                        }
+                                    }
+                                }
+                                break;
+                            case RoomProto.CStartGame: break;
+                            case RoomProto.SStartGameRes:
+                                {
+                                    var id = reader.ReadGuid();
+                                    lock (started) started.Remove(id);
+                                }
+                                break;
+                            case RoomProto.SLoading:
+                                {
+                                    if (State != RoomState.Loading) break;
+                                    var id = reader.ReadGuid();
+                                    var progress = reader.ReadFloat();
+                                    lock (started) started.Remove(id);
+                                    lock (loadingProgress)
+                                        lock (info.members)
+                                        {
+                                            var idx = info.members.FindIndex(v => v.player.id == id);
+                                            if (idx >= 0) loadingProgress[idx] = progress;
+                                        }
+                                    OnUpdatePlayerLoading?.Invoke(id, progress);
+                                }
+                                break;
+                            case RoomProto.CLoading: break;
+                            case RoomProto.CEntryGame: break;
+                            case RoomProto.SEntryGameRes:
+                                {
+                                    var id = reader.ReadGuid();
+                                    lock (entered) entered.Remove(id);
+                                }
+                                break;
+                            case RoomProto.SOperator:
+                                {
+                                    if (State != RoomState.Game) break;
+                                    var id = reader.ReadGuid();
+                                    lock (entered) entered.Remove(id);
 
-                                var operatorCount = reader.ReadInt();
-                                while (operatorCount-- > 0) PlayerOperation(id, reader.ReadOperator());
-                            }
-                            break;
-                        case RoomProto.COperator: break;
+                                    var lackCount = reader.ReadInt();
+                                    if (lackCount > 0)
+                                    {
+                                        var writer = new ProtoWriter(writerBuffer);
+                                        writer.Write(info.id);
+                                        writer.Write(RoomProto.COperator);
+                                        writer.Write(Frame);
+                                        lock (frameOperators)
+                                        {
+                                            lacks.Clear();
+                                            while (lackCount-- > 0)
+                                                if (TryFindFrameOperators(reader.ReadLong(), out FrameOperator frameOperator))
+                                                    lacks.Add(frameOperator);
+                                        }
+                                        writer.Write(lacks.Count);
+                                        foreach (var lack in lacks)
+                                        {
+                                            writer.Write(lack.frame);
+                                            writer.Write(lack.operators.Count);
+                                            foreach (var item in lack.operators)
+                                            {
+                                                writer.Write(item.ctrlId);
+                                                writer.Write(item.oper);
+                                            }
+                                        }
+                                        writer.Send(socket, rip);
+                                    }
+
+                                    var operatorCount = reader.ReadInt();
+                                    while (operatorCount-- > 0) PlayerOperation(id, reader.ReadOperator());
+                                }
+                                break;
+                            case RoomProto.COperator: break;
+                        }
                     }
                 }
             }
+        }
+        catch (Exception e)
+        {
+            if (!_disposed) GameLog.Show(Color.red, e.Message);
         }
     }
     private bool TryFindFrameOperators(long frame, out FrameOperator frameOperator)

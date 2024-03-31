@@ -159,8 +159,7 @@ public class LogicWorld : IDisposable
     public LogicWorld(long[] ctrlIds, long seed, LoadingProgress loading)
     {
         this.ctrlIds = ctrlIds;
-        var asset = Resources.Load<TextAsset>("RainLibraries/RLDemo.lib");
-        var lib = RainLib.Create(asset.bytes);
+        var lib = RainLib.Create(LoadLibrary("RLDemo"));
         if (lib == null) throw new NullReferenceException("逻辑世界lib加载失败");
         var libs = new RainLib[] { lib };
         var parameter = new StartupParameter(libs, seed, 0xff, 0xff,
@@ -406,8 +405,7 @@ public class LogicWorld : IDisposable
     private void OnReleaseEntity(Kernel kernel, ulong entity) { }
     private byte[] LoadLibrary(string name)
     {
-        var asset = Resources.Load<TextAsset>(string.Format("RainLibraries/{0}.lib", name));
-        return asset.bytes;
+        return UIManager.LoadResource(string.Format("RainLibraries/{0}.lib", name));
     }
     private void OnExceptionExit(Kernel kernel, RainStackFrame[] frames, string msg)
     {
@@ -419,7 +417,7 @@ public class LogicWorld : IDisposable
     }
     private byte[] LoadProgramDatabase(string name)
     {
-        return null;//todo 加载pdb文件，在Asset/RainProgramDatabase下
+        return UIManager.LoadResource(string.Format("RainProgramDatabase下/{0}.pdb", name));
     }
     private void EnMsg(string msg)
     {

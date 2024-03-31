@@ -79,7 +79,7 @@ public class Hall : IDisposable
             }
             catch (Exception e)
             {
-                GameLog.Show(UnityEngine.Color.red, e.Message);
+                if (!_disposed) GameLog.Show(UnityEngine.Color.red, e.Message);
             }
         }
     }

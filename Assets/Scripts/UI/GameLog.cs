@@ -61,13 +61,14 @@ public class GameLog : MonoBehaviour
             foreach (var log in logs) Show(log);
             logs.Clear();
         }
-        msgs.RemoveAll(msg => !msg.Update(pool));
+        msgs.RemoveAll(msg => msg.Update(pool));
     }
     private void Show(Log log)
     {
         var text = pool.Count > 0 ? pool.Pop() : new Msg(Instantiate(prefab, transform).GetComponent<Text>());
         text.SetLog(log);
         text.text.transform.SetAsLastSibling();
+        msgs.Add(text);
     }
     private static Queue<Log> logs = new Queue<Log>();
     public static void Show(Color color, string msg)

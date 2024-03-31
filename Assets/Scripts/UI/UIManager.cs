@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 public class UIActivity : MonoBehaviour
@@ -50,7 +51,7 @@ public class UIManager : MonoBehaviour
             tasks = tasksExe;
             tasksExe = tmp;
         }
-        while(tasksExe.Count > 0) tasksExe.Dequeue();
+        while (tasksExe.Count > 0) tasksExe.Dequeue()();
     }
     private void OnDestroy()
     {
@@ -100,7 +101,7 @@ public class UIManager : MonoBehaviour
                 return result;
             }
         }
-        var prefab = Resources.Load<GameObject>("Prefabs/" + name);
+        var prefab = Resources.Load<GameObject>("Prefabs/UI/" + name);
         if (prefab && prefab.GetComponent<UIActivity>())
         {
             var result = Instantiate(prefab, manager.transform).GetComponent<UIActivity>();
@@ -143,6 +144,31 @@ public class UIManager : MonoBehaviour
     }
     public static void Do(Action task)
     {
-        lock(manager.tasks) manager.tasks.Enqueue(task);
+        lock (manager.tasks) manager.tasks.Enqueue(task);
+    }
+    private class LoadResourceHelper
+    {
+        public byte[] data = null;
+        public bool finish = false;
+    }
+    public static byte[] LoadResource(string resouce, float timeout = -1)
+    {
+        var helper = new LoadResourceHelper();
+        Do(() =>
+        {
+            var asset = Resources.Load<TextAsset>(resouce);
+            if(asset) helper.data = asset.bytes;
+            helper.finish = true;
+        });
+        while (!helper.finish)
+        {
+            Thread.Sleep(100);
+            if (timeout > 0)
+            {
+                timeout -= .1f;
+                if (timeout < 0) break;
+            }
+        }
+        return helper.data;
     }
 }

@@ -25,11 +25,11 @@ public class ActivityRoom : UIActivity
     private HashSet<Guid> removes;
     private void Awake()
     {
-        owner = CreateMemberInfo();
         members = new List<ActivityRoomItemPlayer>();
         pool = new Stack<ActivityRoomItemPlayer>();
         updates = new Dictionary<Guid, RoomInfo.MemberInfo>();
         removes = new HashSet<Guid>();
+        owner = CreateMemberInfo();
     }
     private void Update()
     {

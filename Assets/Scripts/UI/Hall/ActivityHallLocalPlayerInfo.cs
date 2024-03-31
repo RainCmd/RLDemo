@@ -8,6 +8,7 @@ public class ActivityHallLocalPlayerInfo : MonoBehaviour
     private void Start()
     {
         PlayerInfo.OnLocalInfoChange += Refresh;
+        Refresh(PlayerInfo.Local);
     }
     private void Refresh(PlayerInfo info)
     {

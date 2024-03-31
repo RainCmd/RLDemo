@@ -53,7 +53,6 @@ public struct PlayerInfo
     [RuntimeInitializeOnLoadMethod]
     public static void Init()
     {
-        Debug.Log(path);
         if (File.Exists(path))
         {
             using (var fs = File.OpenRead(path))
