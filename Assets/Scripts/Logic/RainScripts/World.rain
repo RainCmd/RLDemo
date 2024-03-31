@@ -5,6 +5,7 @@ import GameConfig
 public Area worldRoot = GetArea(null, real2(0, 0), WORLD_SIZE, true)
 
 public delegate OnSelectEntity(GameEntity)
+public delegate bool TerminalCondition()
 public class Area
     public Area parent
     public real2 position
@@ -80,6 +81,8 @@ public class Area
             if count < LOWER_LIMIT_AREA_ENTITY_COUNT
                 Gather()
     public SelectRange(real2 position, real radius, OnSelectEntity onSelect)
+        SelectRange(position, radius, onSelect, null)
+    public bool SelectRange(real2 position, real radius, OnSelectEntity onSelect, TerminalCondition condition)
         if Overlaps(position, radius)
             if leaf
                 var sqrRadius = radius * radius
@@ -88,16 +91,26 @@ public class Area
                     var d = e.position.xz - position
                     if d.SqrMagnitude() < sqrRadius
                         onSelect(e)
+                        if condition?()
+                            return true
             else
                 for var i, var cnt = 0, subAreas.GetLength(); i < cnt; i++
-                    subAreas[i]->SelectRange(position, radius, onSelect)
+                    if subAreas[i]->SelectRange(position, radius, onSelect, condition)
+                        return true
+        return false
     public SelectAll(OnSelectEntity onSelect)
+        SelectAll(onSelect, null)
+    public bool SelectAll(OnSelectEntity onSelect, TerminalCondition condition)
         if leaf
             for var i = 0; i < count; i++
                 onSelect(entities[i])
+                if condition?()
+                    return true
         else
             for var i, var cnt = 0, subAreas.GetLength(); i < cnt; i++
-                subAreas[i]->SelectAll(onSelect)
+                if subAreas[i]->SelectAll(onSelect, condition)
+                    return true
+        return false
     public Move(GameEntity value, real2 position)
         if Contains(position)
             parent?->Move(value, position)

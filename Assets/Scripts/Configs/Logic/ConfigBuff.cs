@@ -11,7 +11,6 @@ public struct ConfigBuff
     public long id;
     public string name;
     public string description;
-    [ConfigId]
     public long icon;
     public bool isDebuff;
     /// <summary>

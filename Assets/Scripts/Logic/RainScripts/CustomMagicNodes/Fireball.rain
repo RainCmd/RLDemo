@@ -1,12 +1,32 @@
 namespace CustomMagicNodes
     import Utils
+    import kernel.Math
+    //火球命中别人后造成100点伤害
+    //命中才会触发后续法术
     public class Fireball MissileMagicNode
         private GameEntity gameEntity
+        private Unit selected
+        public real GetDir(real dir, integer index)
+            return dir + PI * index * 2 / 3
+        private OnSelectEntity(GameEntity e)
+            if e != creater && e is Unit u
+                selected = u
+        private bool TerminalCondition()
+            return selected != null
         public OnStart()
-            //
             gameEntity = GameEntity()
             gameEntity.Init('EB_fire', "stand", velocity, position)
-            while
+            var time = gameTime
+            while gameTime - time < 3
                 wait
-                position += velocity
+                position += velocity * 10
                 gameEntity.Move(velocity, position)
+                selected = null
+                worldRoot.SelectRange(position.xy, .5, OnSelectEntity, TerminalCondition)
+                break selected != null
+            OnFinish()
+            if selected !=null
+                DamageUnit(creater, 100, selected)
+                OnHit(selected)
+                TriggerNext()
+

@@ -65,6 +65,14 @@ public static class Config
             return magicNodeTypeIcons.IconList;
         }
     }
+    private static Icons buffIcons = new Icons(ConfigIcons.BuffIconsPath);
+    public static IReadOnlyList<Sprite> BuffIcons
+    {
+        get
+        {
+            return buffIcons.IconList;
+        }
+    }
 
     private static ConfigSplat splatInfos;
     public static IReadOnlyList<ConfigSplatInfo> SplatInfos

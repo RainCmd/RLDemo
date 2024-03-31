@@ -45,7 +45,7 @@ public class MissileMagicNode MagicNodeInstance
             missile.OnStart(m, GetDir(dir, m.missile.index))
 
 public class AlterMagicNode MagicNodeInstance
-    public OnStart(MissileMagicNode node)
+    public OnStart(MissileMagicNode)
     public OnHit(Unit)
     public OnFinish()
 

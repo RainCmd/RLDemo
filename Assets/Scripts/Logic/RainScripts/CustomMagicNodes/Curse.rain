@@ -1,0 +1,4 @@
+namespace CustomMagicNodes
+    space class Curse AlterMagicNode
+        public OnHit(Unit target)
+            target.AddBuff('ApDmg', creater)

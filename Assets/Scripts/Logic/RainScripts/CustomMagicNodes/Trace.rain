@@ -1,0 +1,26 @@
+namespace CustomMagicNodes
+    import kernel.Math
+    import Utils
+    space class Trace AlterMagicNode
+        private MissileMagicNode missile
+        private bool finished = false
+        private Unit target = null
+        private OnSelectEntity(GameEntity e)
+            if e != creater && e is Unit u 
+                target = u
+        private bool TerminalCondition()
+            return target != null
+        public OnStart(MissileMagicNode missile)
+            while !finished
+                wait
+                worldRoot.SelectRange(missile.position.xy, 5, OnSelectEntity, TerminalCondition)
+                break target != null
+            while !finished && target.valid
+                var v = target.position.xy - missile.position.xy
+                var angle = Asin(Cross(v, missile.velocity.xy) / (v.Magnitude() * missile.velocity.xy.Magnitude()))
+                if angle > PI * LOGIC_TIMESTEP
+                    angle = PI * LOGIC_TIMESTEP * Sign(angle)
+                missile.velocity.xy = Rotation(missile.velocity.xy, angle)
+                wait
+        public OnFinish()
+            finished = true

@@ -17,4 +17,9 @@ public class ConfigIconsEditor : ConfigEditor
     {
         Create<ConfigIcons>(ConfigIcons.MagicNodeTypeIconsPath);
     }
+    [MenuItem("配置文件/Buff图标")]
+    private static void CreateBuffIcons()
+    {
+        Create<ConfigIcons>(ConfigIcons.BuffIconsPath);
+    }
 }

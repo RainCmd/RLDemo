@@ -30,6 +30,7 @@ public class Player
     private real rockDis
     public Player(integer id)
         this.id = id
+        hero = Unit('U_hero', id, FORWARD, GetRandomWorldPosition()) 
         for var i = 0; i < wands.GetLength(); i++
             wands[i] = Wand(0, 0, MagicNode[WAND_SLOT_SIZE])
         start PlayerMainLoop()

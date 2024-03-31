@@ -1,0 +1,4 @@
+namespace CustomMagicNodes
+    space class Slow AlterMagicNode
+        public OnStart(MissileMagicNode missile)
+            missile.velocity *= .5
