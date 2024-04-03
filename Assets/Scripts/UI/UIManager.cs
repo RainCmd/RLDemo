@@ -38,6 +38,7 @@ public class UIManager : MonoBehaviour
     private Queue<Action> tasksExe = new Queue<Action>();
     private void Awake()
     {
+        uiThread = Thread.CurrentThread;
         DontDestroyOnLoad(eventSystem);
         DontDestroyOnLoad(gameObject);
         manager = this;
@@ -151,15 +152,18 @@ public class UIManager : MonoBehaviour
         public byte[] data = null;
         public bool finish = false;
     }
+    private static Thread uiThread = null;
     public static byte[] LoadResource(string resouce, float timeout = -1)
     {
         var helper = new LoadResourceHelper();
-        Do(() =>
+        Action action = () =>
         {
             var asset = Resources.Load<TextAsset>(resouce);
-            if(asset) helper.data = asset.bytes;
+            if (asset) helper.data = asset.bytes;
             helper.finish = true;
-        });
+        };
+        if (Thread.CurrentThread == uiThread) action();
+        else Do(action);
         while (!helper.finish)
         {
             Thread.Sleep(100);

@@ -6,6 +6,7 @@ using RainLanguage;
 using RainLib = RainLanguage.RainLanguageAdapter.RainLibrary;
 using Kernel = RainLanguage.RainLanguageAdapter.RainKernel;
 using Function = RainLanguage.RainLanguageAdapter.RainFunction;
+using System.Xml.Linq;
 
 public struct CtrlInfo
 {
@@ -149,7 +150,6 @@ public struct LogicFloatTextMsg
 public class LogicWorld : IDisposable
 {
     public readonly long[] ctrlIds;
-    private readonly Queue<string> messages = new Queue<string>();
     private readonly Queue<IDisposable> disposables = new Queue<IDisposable>();
     private Kernel kernel;
     private Function[] operFuncs;
@@ -158,6 +158,7 @@ public class LogicWorld : IDisposable
     public event Action<LogicFloatTextMsg> OnFloatTextMsg;
     public LogicWorld(long[] ctrlIds, long seed, LoadingProgress loading)
     {
+        RegistFunctions();
         this.ctrlIds = ctrlIds;
         var lib = RainLib.Create(LoadLibrary("RLDemo"));
         if (lib == null) throw new NullReferenceException("逻辑世界lib加载失败");
@@ -168,25 +169,27 @@ public class LogicWorld : IDisposable
         kernel = RainLanguageAdapter.CreateKernel(parameter);
         using (var init = kernel.FindFunction("GameMain"))
         using (var invoker = init.CreateInvoker())
-            invoker.Start(true, true);
+            invoker.Start(true, false);
         InitOperFuncs();
         loading.Progress = 1;
     }
 
-    public OnCaller LoadCaller(Kernel kernel, string fullName, RainType[] parameters)
+    private OnCaller LoadCaller(Kernel kernel, string fullName, RainType[] parameters)
     {
         if (callerMap.TryGetValue(fullName, out CallerHelper helper)) return helper.OnCaller;
         else
         {
-            GameLog.Show(Color.red, string.Format("函数：{0} 没有绑定!", fullName));
-            return (k, c) => EnMsg("调用了未绑定函数：" + fullName);
+            var log = "函数：{0} 没有绑定!".Format(fullName);
+            GameLog.Show(Color.red, log);
+            UnityEngine.Debug.LogError(log);
+            return (k, c) => UnityEngine.Debug.LogError("调用了未绑定函数:" + fullName);
         }
     }
     #region NativeFunctions
     private void Debug(string msg)
     {
         GameLog.Show(Color.white, msg);
-        EnMsg(msg);
+        UnityEngine.Debug.Log("<color=#00ffcc>雨言Debug</color>:{0}".Format(msg));
     }
     private long[] GetCtrls()
     {
@@ -237,9 +240,9 @@ public class LogicWorld : IDisposable
     {
         OnRendererMsg?.Invoke(L2RData.EntityRemoved(id, immediately));
     }
-    private void NativeOnUpdateUnitEntity(long id, long player, long type, Real hp, Real maxHP, Real mp, Real maxMP)
+    private void NativeOnUpdateUnitEntity(long id, long player, UnitType type, Real hp, Real maxHP, Real mp, Real maxMP)
     {
-        OnRendererMsg?.Invoke(L2RData.UpdateUnitEntity(new LogicUnitEntity(id, player, (UnitType)type, hp, maxHP, mp, maxMP)));
+        OnRendererMsg?.Invoke(L2RData.UpdateUnitEntity(new LogicUnitEntity(id, player, type, hp, maxHP, mp, maxMP)));
     }
     private void NativeOnRemoveUnitEntity(long id)
     {
@@ -347,8 +350,8 @@ public class LogicWorld : IDisposable
                         invoker.SetIntegerParameter(0, pid);
                         invoker.SetIntegerParameter(1, wand);
                         invoker.Start(true, true);
-                        var start = invoker.GetIntegerReturnValue(0);
-                        var end = invoker.GetIntegerReturnValue(1);
+                        var start = invoker.GetRealReturnValue(0);
+                        var end = invoker.GetRealReturnValue(1);
                         var nodes = invoker.GetIntegersReturnValue(2);
                         players[pid].wands[wand] = new LogicWand(start, end, nodes);
                     }
@@ -407,31 +410,32 @@ public class LogicWorld : IDisposable
     {
         return UIManager.LoadResource(string.Format("RainLibraries/{0}.lib", name));
     }
+    private readonly Dictionary<string, RainLanguageAdapter.RainProgramDatabase> databaseMap = new Dictionary<string, RainLanguageAdapter.RainProgramDatabase>();
     private void OnExceptionExit(Kernel kernel, RainStackFrame[] frames, string msg)
     {
         GameLog.Show(Color.red, msg);
         msg = string.Format("<color=#ff0000>{0}</color>", msg);
         foreach (var frame in frames)
-            msg += string.Format("\n{0} <color=#00ff00>{1}</color> <color=#ffcc00>0X{2}</color>", frame.funName, frame.libName, frame.address.ToString("X"));
-        EnMsg(msg);
+        {
+            if(!databaseMap.TryGetValue(frame.libName,out var database))
+            {
+                database = RainLanguageAdapter.RainProgramDatabase.Create(LoadProgramDatabase(frame.libName));
+                databaseMap.Add(frame.libName, database);
+            }
+            if(database == null) 
+                msg += string.Format("\n{0} [<color=#ffcc00>0X{1}</color>]", 
+                    frame.funName, frame.libName, frame.address.ToString("X"));
+            else
+            {
+                msg += string.Format("\n{0} [<color=#ffcc00>0X{1}</color>]",
+                    frame.funName, frame.libName, frame.address.ToString("X"));
+            }
+        }
+        UnityEngine.Debug.LogError(msg);
     }
     private byte[] LoadProgramDatabase(string name)
     {
-        return UIManager.LoadResource(string.Format("RainProgramDatabase下/{0}.pdb", name));
-    }
-    private void EnMsg(string msg)
-    {
-        lock (messages) messages.Enqueue(msg);
-    }
-    public bool TryDeMsg(out string msg)
-    {
-        if (messages.Count > 0)
-        {
-            lock (messages) msg = messages.Dequeue();
-            return true;
-        }
-        msg = null;
-        return false;
+        return UIManager.LoadResource(string.Format("RainProgramDatabase/{0}.pdb", name));
     }
     public void EntryGame(IRoom room)
     {
@@ -507,12 +511,12 @@ public class LogicWorld : IDisposable
         kernel = null;
     }
 
-    private static readonly Dictionary<string, CallerHelper> callerMap = new Dictionary<string, CallerHelper>();
-    private static void RegistFunction(string rainFunctionName, string csFunctionName)
+    private readonly Dictionary<string, CallerHelper> callerMap = new Dictionary<string, CallerHelper>();
+    private void RegistFunction(string rainFunctionName, string csFunctionName)
     {
-        callerMap.Add(Config.GameName + "." + rainFunctionName, CallerHelper.Create<LogicWorld>(csFunctionName));
+        callerMap.Add(Config.GameName + "." + rainFunctionName, CallerHelper.Create<LogicWorld>(this, csFunctionName));
     }
-    static LogicWorld()
+    private void RegistFunctions()
     {
         RegistFunction("Debug", "Debug");
 
@@ -544,9 +548,9 @@ public class LogicWorld : IDisposable
 
         RegistFunction("ShowFloatText", "ShowFloatText");
 
-        RegistFunction("OnLoadGameEntity", "NativeOnLoadGameEntity");
-        RegistFunction("OnLoadGameUnit", "NativeOnLoadGameUnit");
-        RegistFunction("OnLoadBuff", "NativeOnLoadBuff");
-        RegistFunction("OnLoadMagicNode", "NativeOnLoadMagicNode");
+        RegistFunction("InitGame.OnLoadGameEntity", "NativeOnLoadGameEntity");
+        RegistFunction("InitGame.OnLoadGameUnit", "NativeOnLoadGameUnit");
+        RegistFunction("InitGame.OnLoadBuff", "NativeOnLoadBuff");
+        RegistFunction("InitGame.OnLoadMagicNode", "NativeOnLoadMagicNode");
     }
 }

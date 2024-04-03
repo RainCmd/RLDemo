@@ -102,11 +102,8 @@ public class CompileRainScripts
     }
     private static unsafe void SaveData(RainLanguageAdapter.RainBuffer rb, string path)
     {
-        var buffer = new byte[rb.Length];
-        var tmp = rb.Data;
-        for (int i = 0; i < buffer.Length; i++) buffer[i] = tmp[i];
         using (var fs = File.Create(path))
-            fs.Write(buffer, 0, buffer.Length);
+            fs.Write(rb.Data, 0, rb.Data.Length);
     }
     private static string compileState;
     [MenuItem("雨言/编译")]

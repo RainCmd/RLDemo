@@ -7,6 +7,7 @@ public class GameMgr : MonoBehaviour
 {
     private bool entryGame = false;
     public event Action OnRenderLateUpdate;
+    private Thread loadLogicThread;
     public CameraMgr CameraMgr { get; private set; }
     public IRoom Room { get; private set; }
     public LogicWorld Logic { get; private set; }
@@ -28,17 +29,15 @@ public class GameMgr : MonoBehaviour
         ctrls[0] = Room.Info.ctrlId;
         for (int i = 0; i < Room.Info.members.Count; i++)
             ctrls[i + 1] = Room.Info.members[i].ctrlId;
-        new Thread(() => Logic = new LogicWorld(ctrls, Room.Info.seed, loading.Split(.25f, .8f))).Start();
+        loadLogicThread = new Thread(() => Logic = new LogicWorld(ctrls, Room.Info.seed, loading.Split(.25f, .8f)));
+        loadLogicThread.Start();
         while (Logic == null) yield return null;
+        loadLogicThread = null;
         Renderer.Load(this, Logic, loading);
     }
     private void Update()
     {
         if (Room == null) return;
-        if (Logic != null && Logic.TryDeMsg(out var msg))
-        {
-            Debug.Log(msg);
-        }
         if (entryGame)
         {
             CameraMgr?.Update();
@@ -68,6 +67,7 @@ public class GameMgr : MonoBehaviour
         Renderer = null;
         Logic.Dispose();
         Logic = null;
+        loadLogicThread?.Abort();
     }
     public long GetPlayerId(Guid id)
     {
