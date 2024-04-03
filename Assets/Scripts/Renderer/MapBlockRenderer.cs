@@ -148,10 +148,10 @@ public class MapBlockRenderer : IDisposable
     {
         var area = mgr.CameraArea;
         var blocks = Config.MapBlocks;
-        var minX = Mathf.Clamp((int)(area.min.x / blockWidth), 0, blocks.width);
-        var maxX = Mathf.Clamp((int)(area.max.x / blockWidth), 0, blocks.width);
-        var minY = Mathf.Clamp((int)(area.min.y / blockHeight), 0, blocks.height);
-        var maxY = Mathf.Clamp((int)(area.max.y / blockHeight), 0, blocks.height);
+        var minX = Mathf.Clamp((int)(area.min.x / blockWidth), 0, blocks.width - 1);
+        var maxX = Mathf.Clamp((int)(area.max.x / blockWidth), 0, blocks.width - 1);
+        var minY = Mathf.Clamp((int)(area.min.y / blockHeight), 0, blocks.height - 1);
+        var maxY = Mathf.Clamp((int)(area.max.y / blockHeight), 0, blocks.height - 1);
         if (lastMinX < minX || lastMinY < minY || lastMaxX > maxX || lastMaxY > maxY)
             for (var x = lastMinX; x <= lastMaxX; x++)
                 for (var y = lastMinY; y <= lastMaxY; y++)

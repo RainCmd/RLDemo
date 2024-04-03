@@ -8,7 +8,15 @@ public class GameMgr : MonoBehaviour
     private bool entryGame = false;
     public event Action OnRenderLateUpdate;
     private Thread loadLogicThread;
-    public CameraMgr CameraMgr { get; private set; }
+    private CameraMgr cameraMgr;
+    public CameraMgr CameraMgr
+    {
+        get
+        {
+            if (cameraMgr == null) cameraMgr = new CameraMgr(Camera.main);
+            return cameraMgr;
+        }
+    }
     public IRoom Room { get; private set; }
     public LogicWorld Logic { get; private set; }
     public RendererWorld Renderer { get; private set; }
