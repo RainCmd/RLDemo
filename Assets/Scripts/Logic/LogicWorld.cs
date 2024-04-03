@@ -417,18 +417,19 @@ public class LogicWorld : IDisposable
         msg = string.Format("<color=#ff0000>{0}</color>", msg);
         foreach (var frame in frames)
         {
-            if(!databaseMap.TryGetValue(frame.libName,out var database))
+            if (!databaseMap.TryGetValue(frame.libName, out var database))
             {
                 database = RainLanguageAdapter.RainProgramDatabase.Create(LoadProgramDatabase(frame.libName));
                 databaseMap.Add(frame.libName, database);
             }
-            if(database == null) 
-                msg += string.Format("\n{0} [<color=#ffcc00>0X{1}</color>]", 
-                    frame.funName, frame.libName, frame.address.ToString("X"));
+            if (database == null)
+                msg += string.Format("\n{0} [<color=#ffcc00>0X{1}</color>]",
+                    frame.funName, frame.address.ToString("X"));
             else
             {
-                msg += string.Format("\n{0} [<color=#ffcc00>0X{1}</color>]",
-                    frame.funName, frame.libName, frame.address.ToString("X"));
+                database.GetPosition(frame.address, out var file, out var line);
+                msg += string.Format("\n{0} [{1}:<color=#ffcc00>{2}</color>]",
+                    frame.funName, file, line);
             }
         }
         UnityEngine.Debug.LogError(msg);

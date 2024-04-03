@@ -72,7 +72,8 @@ namespace InitGame
                 var wand = player.wands[i]
                 for var i = 0; i < wand.magicNodes.GetLength(); i++
                     var node = wand.magicNodes[i]
-                    OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
+                    if node != null
+                        OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
             for var i = 0; i < player.pickList.Count(); i++
                 var node = (MagicNodeEntity& player.pickList.Get(i)).node
                 if node.number != 0
