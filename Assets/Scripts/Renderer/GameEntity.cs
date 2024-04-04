@@ -75,7 +75,11 @@ public class GameEntity
                 if (lastPosition != position) entity.SetPosition(position);
             }
         }
-        else entity?.OnRecycle(true);
+        else
+        {
+            entity?.Recycle();
+            entity = null;
+        }
     }
     public virtual void PlayAnimation(string animation)
     {
@@ -83,6 +87,8 @@ public class GameEntity
     }
     public void OnRemove(bool immediately)
     {
-        entity.OnRecycle(immediately);
+        if (immediately) entity.Recycle();
+        else entity.Kill();
+        entity = null;
     }
 }

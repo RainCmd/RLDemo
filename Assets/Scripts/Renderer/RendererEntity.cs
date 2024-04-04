@@ -4,7 +4,7 @@ public abstract class RendererEntity : MonoBehaviour
 {
     public RendererWorld World { get; private set; }
     public string Resource { get; private set; }
-    public RendererEntity(RendererWorld world, string resource)
+    public void OnCreate(RendererWorld world, string resource)
     {
         World = world;
         Resource = resource;
@@ -19,10 +19,11 @@ public abstract class RendererEntity : MonoBehaviour
     public void PlayAnim(string name) { PlayAnim(name, 0); }
     public virtual void PlayAnim(string name, float time) { }
     public virtual void SetAnimSpeed(float speed) { }
-    public abstract void OnRecycle(bool immediately);
-    protected void Recycle()
+    public virtual void Kill() { }
+    protected virtual void OnRecycle() { }
+    public void Recycle()
     {
+        OnRecycle();
         World.RecycleRendererEntity(this);
     }
-    public abstract void OnDestroy();
 }

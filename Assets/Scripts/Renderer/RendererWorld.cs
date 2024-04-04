@@ -13,6 +13,8 @@ public class RendererWorld : IDisposable
     private readonly Dictionary<long, GameUnit> units = new Dictionary<long, GameUnit>();
     public readonly Dictionary<long, LogicBuffEntity> buffs = new Dictionary<long, LogicBuffEntity>();
     public readonly Dictionary<long, LogicMagicNodeEntity> magicNodes = new Dictionary<long, LogicMagicNodeEntity>();
+    private bool activeRendererEntityClearFlag = false;
+    private readonly HashSet<RendererEntity> activeRendererEntities = new HashSet<RendererEntity>();
     private readonly Dictionary<string, Stack<RendererEntity>> rendererEntityPool = new Dictionary<string, Stack<RendererEntity>>();
 
     #region local player data
@@ -112,6 +114,10 @@ public class RendererWorld : IDisposable
         units.Clear();
         foreach (var item in entities) item.Value.OnRemove(true);
         entities.Clear();
+        activeRendererEntityClearFlag = true;
+        foreach (var entity in activeRendererEntities) entity.Recycle();
+        activeRendererEntityClearFlag = false;
+        activeRendererEntities.Clear();
         floatTextMsgPipeline.Clear();
         //todo 清理
     }
@@ -280,6 +286,7 @@ public class RendererWorld : IDisposable
         {
             var result = pool.Pop();
             result.Init();
+            activeRendererEntities.Add(result);
             return result;
         }
         else
@@ -288,7 +295,9 @@ public class RendererWorld : IDisposable
             var result = go?.GetComponent<RendererEntity>();
             if (result != null)
             {
+                result.OnCreate(this, resource);
                 result.Init();
+                activeRendererEntities.Add(result);
                 return result;
             }
         }
@@ -297,6 +306,8 @@ public class RendererWorld : IDisposable
     public void RecycleRendererEntity(RendererEntity entity)
     {
         if (entity == null) return;
+        if (!activeRendererEntityClearFlag)
+            activeRendererEntities.Remove(entity);
         if (!rendererEntityPool.TryGetValue(entity.Resource, out var pool))
         {
             pool = new Stack<RendererEntity>();
@@ -317,9 +328,6 @@ public class RendererWorld : IDisposable
     public void Dispose()
     {
         mapBlock.Dispose();
-        foreach (var unit in units) unit.Value.OnRemove();
-        units.Clear();
-        foreach (var entity in entities) entity.Value.OnRemove(true);
-        entities.Clear();
+        Unload();
     }
 }

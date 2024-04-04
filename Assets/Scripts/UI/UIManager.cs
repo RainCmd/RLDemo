@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
@@ -62,6 +63,11 @@ public class UIManager : MonoBehaviour
             if (activities[cnt].gameObject.activeSelf) activities[cnt].OnHide();
             activities[cnt].OnDelete();
         }
+    }
+    private IEnumerator DelayAction(Action action, float delaySecond)
+    {
+        yield return new WaitForSeconds(delaySecond);
+        action();
     }
     private static UIManager manager;
     private static readonly List<UIActivity> activities = new List<UIActivity>();
@@ -146,6 +152,10 @@ public class UIManager : MonoBehaviour
     public static void Do(Action task)
     {
         lock (manager.tasks) manager.tasks.Enqueue(task);
+    }
+    public static void Do(Action task, float delaySecond)
+    {
+        Do(() => manager.StartCoroutine(manager.DelayAction(task, delaySecond)));
     }
     private class LoadResourceHelper
     {

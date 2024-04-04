@@ -12,4 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0f4af0f3f3612546aef14500d0cf8c2, type: 3}
   m_Name: BuffIcons
   m_EditorClassIdentifier: 
-  _list: []
+  _list:
+  - {fileID: 21300000, guid: 66fb9b7ae811c0e4aaaf107e5244077b, type: 3}
+  - {fileID: 21300000, guid: 3eb9d2198c50b56458eb0357aa5546d6, type: 3}
+  - {fileID: 21300000, guid: 450589d2aa26fd84ca62993aa324ac17, type: 3}
+  - {fileID: 21300000, guid: b6c03da79b4fa464f813af1754087f49, type: 3}
+  - {fileID: 21300000, guid: 7543344b5cf6e5c4abe99575a4fd80d7, type: 3}
+  - {fileID: 21300000, guid: d93699590b40ae7429809d0d170783c7, type: 3}
+  - {fileID: 21300000, guid: 37c09b96175eb0149a88cb76161b526f, type: 3}
+  - {fileID: 21300000, guid: 81a710acf873fa34889bc38fa9509d3b, type: 3}
+  - {fileID: 21300000, guid: 8beaa44793552144bbd0e41eb03d6b24, type: 3}
+  - {fileID: 21300000, guid: 6aa69171438ab7443bb3b9a932b88c5d, type: 3}
+  - {fileID: 21300000, guid: 1b932959177610c40aa42b454539592f, type: 3}
