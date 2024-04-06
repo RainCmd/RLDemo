@@ -165,7 +165,7 @@ public class LogicWorld : IDisposable
         var libs = new RainLib[] { lib };
         var parameter = new StartupParameter(libs, seed, 0xff, 0xff,
             OnReferenceEntity, OnReleaseEntity,
-            LoadLibrary, LoadCaller, OnExceptionExit, LoadProgramDatabase);
+            LoadLibrary, LoadCaller, OnExceptionExit);
         kernel = RainLanguageAdapter.CreateKernel(parameter);
         using (var init = kernel.FindFunction("GameMain"))
         using (var invoker = init.CreateInvoker())

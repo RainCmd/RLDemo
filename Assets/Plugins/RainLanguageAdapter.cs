@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using UnityEngine;
 
 namespace RainLanguage
 {
@@ -35,7 +34,7 @@ namespace RainLanguage
         ERROR_ATTRIBUTE_INVALID,                //属性无效
         ERROR_MISSING_NAME,                     //缺少名称
         ERROR_MISSING_TYPE,                     //缺少类型
-        ERROR_UNEXPECTED_LINE_END,              //以外的行尾
+        ERROR_UNEXPECTED_LINE_END,              //意外的行尾
         ERROR_CONSTANT_NOT_ASSIGNMENT,          //常量未赋值
         ERROR_MISSING_ASSIGNMENT_EXPRESSION,    //缺少赋值表达式
         ERROR_MISSING_IDENTIFIER,               //缺少标识符
@@ -104,6 +103,7 @@ namespace RainLanguage
         WARRING_LEVEL1_REPEATED_VISIBILITY,     //重复的可访问性修饰
         WARRING_LEVEL1_DESTRUCTOR_ATTRIBUTES,   //析构函数属性将被丢弃
         WARRING_LEVEL1_DESTRUCTOR_VISIBILITY,   //析构函数的可访问性修饰会被忽略
+        WARRING_LEVEL1_SINGLE_TYPE_EXPRESSION,	//单独的类型表达式
 
         WARRING_LEVEL2 = RainErrorLevel.WarringLevel2 << 24,
 
@@ -249,9 +249,7 @@ namespace RainLanguage
         public DataLoader libraryLoader;
         public CallerLoader callerLoader;
         public ExceptionExit onExceptionExit;
-        public DataLoader programDatabaseLoader;
-
-        public StartupParameter(RainLanguageAdapter.RainLibrary[] libraries, long seed, uint stringCapacity, uint entityCapacity, EntityAction onReferenceEntity, EntityAction onReleaseEntity, DataLoader libraryLoader, CallerLoader callerLoader, ExceptionExit onExceptionExit, DataLoader programDatabaseLoader)
+        public StartupParameter(RainLanguageAdapter.RainLibrary[] libraries, long seed, uint stringCapacity, uint entityCapacity, EntityAction onReferenceEntity, EntityAction onReleaseEntity, DataLoader libraryLoader, CallerLoader callerLoader, ExceptionExit onExceptionExit)
         {
             this.libraries = libraries;
             this.seed = seed;
@@ -262,7 +260,6 @@ namespace RainLanguage
             this.libraryLoader = libraryLoader;
             this.callerLoader = callerLoader;
             this.onExceptionExit = onExceptionExit;
-            this.programDatabaseLoader = programDatabaseLoader;
         }
     }
     public readonly struct CallerHelper
@@ -658,13 +655,9 @@ namespace RainLanguage
         {
             return (double)value.value / ratio;
         }
-        public static explicit operator Real(double value)
+        public static implicit operator Real(double value)
         {
             return new Real(value);
-        }
-        public static implicit operator Real(long value)
-        {
-            return new Real(value * ratio);
         }
 #else
         public readonly double value;
@@ -681,11 +674,7 @@ namespace RainLanguage
     public struct Real4 { public Real x, y, z, w; }
     public unsafe class RainLanguageAdapter
     {
-#if UNITY_ANDROID
-        private const string RainLanguageDLLName = "RainLanguageSO";
-#else
         private const string RainLanguageDLLName = "RainLanguage";
-#endif
         private static T* AllocMemory<T>(int size) where T : unmanaged
         {
             return (T*)Marshal.AllocHGlobal(size * sizeof(T));
@@ -1096,7 +1085,6 @@ namespace RainLanguage
         private delegate void ExternOnCaller(void* kernel, void* caller);
         private delegate ExternOnCaller ExternNativeCallerLoader(void* kernel, ExternNativeString fullName, byte* parameters, uint parameterCount);
         private delegate void ExternExceptionExit(void* kernel, ExternRainStackFram* frames, uint count, ExternNativeString msg);
-        private delegate void* ExternProgramDatabaseLoader(void* name);
         [StructLayout(LayoutKind.Sequential)]
         private readonly struct ExternStartupParameter
         {
@@ -1112,8 +1100,7 @@ namespace RainLanguage
             readonly uint taskCapacity;
             readonly uint executeStackCapacity;
             readonly ExternExceptionExit onExceptionExit;
-            readonly ExternProgramDatabaseLoader programDatabaseLoader;
-            public ExternStartupParameter(void** libraries, uint libraryCount, long seed, uint stringCapacity, uint entityCapacity, ExternEntityAction onReferenecEntity, ExternEntityAction onReleaseEntity, LibraryLoader libraryLoader, ExternNativeCallerLoader nativeCallerLoader, uint heapCapacity, uint heapGeneration, uint taskCapacity, uint executeStackCapacity, ExternExceptionExit onExceptionExit, ExternProgramDatabaseLoader programDatabaseLoader)
+            public ExternStartupParameter(void** libraries, uint libraryCount, long seed, uint stringCapacity, uint entityCapacity, ExternEntityAction onReferenecEntity, ExternEntityAction onReleaseEntity, LibraryLoader libraryLoader, ExternNativeCallerLoader nativeCallerLoader, uint heapCapacity, uint heapGeneration, uint taskCapacity, uint executeStackCapacity, ExternExceptionExit onExceptionExit)
             {
                 this.libraries = libraries;
                 this.libraryCount = libraryCount;
@@ -1129,7 +1116,6 @@ namespace RainLanguage
                 this.taskCapacity = taskCapacity;
                 this.executeStackCapacity = executeStackCapacity;
                 this.onExceptionExit = onExceptionExit;
-                this.programDatabaseLoader = programDatabaseLoader;
             }
         }
         public class RainKernel : IDisposable
@@ -2188,14 +2174,7 @@ namespace RainLanguage
                         var frames = new RainStackFrame[count];
                         for (int i = 0; i < count; i++) frames[i] = new RainStackFrame(stackFrames[i].libName, stackFrames[i].functionName, stackFrames[i].address);
                         startupParameter.onExceptionExit(new RainKernelCopy(kernel), frames, msg);
-                    },
-                    libName =>
-                    {
-                        var pdb = RainProgramDatabase.Create(startupParameter.programDatabaseLoader(NativeString.GetString(libName)));
-                        if (pdb == null) return null;
-                        return pdb.GetSource();//可能会因为触发gc导致数据在加载完成之前被回收
-                    }
-                    )));
+                    })));
         }
         public delegate void* Alloc(uint size);
         public delegate void Free(void* pointer);
