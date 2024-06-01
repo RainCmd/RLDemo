@@ -14,7 +14,7 @@ public class Buff
     public real endTime
     public OnCreate()
     public OnRemove()
-    public OnUpdate(Unit source)
+    public OnUpdate(Unit)
         if config.accumulation
             number++
         if config.refresh

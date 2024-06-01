@@ -146,6 +146,7 @@ public class MapBlockRenderer : IDisposable
     }
     public void OnRendererUpdate()
     {
+        return;
         var area = mgr.CameraArea;
         var blocks = Config.MapBlocks;
         var minX = Mathf.Clamp((int)(area.min.x / blockWidth), 0, blocks.width - 1);
@@ -177,6 +178,7 @@ public class MapBlockRenderer : IDisposable
 
     public void Dispose()
     {
+        return;
         foreach (var mat in materials) UnityEngine.Object.DestroyImmediate(mat);
         for (var x = lastMinX; x <= lastMaxX; x++)
             for (var y = lastMinY; y <= lastMaxY; y++)

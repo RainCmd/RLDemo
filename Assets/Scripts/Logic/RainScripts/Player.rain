@@ -22,7 +22,7 @@ public class Player
     public List bagMagicNodes = List()//<MagicNode>
     public Wand[] wands = Wand[3]
     public integer currentWand = 0
-    private List pickList = List()//<MagicNodeEntity>
+    public List pickList = List()//<MagicNodeEntity>
     private List selectPickList = List()//<MagicNodeEntity>
     private bool fire = false
     private real fireDir

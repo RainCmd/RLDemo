@@ -6,5 +6,5 @@ namespace CustomBuffs
             owner.onHitEvent += HitEvent& OnOwnerDmg
         public OnRemove()
             owner.onHitEvent += HitEvent& OnOwnerDmg
-        private real OnOwnerDmg(Unit source, real dmg)
+        private real OnOwnerDmg(Unit, real dmg)
             return dmg * 2
