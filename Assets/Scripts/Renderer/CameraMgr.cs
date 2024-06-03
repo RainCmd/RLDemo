@@ -11,9 +11,8 @@ public class CameraMgr
     private Vector2 CameraV2P(float x, float y)
     {
         var r = camera.ViewportPointToRay(new Vector3(x, y));
-        var d = r.direction;
-        d.y = 0;
-        return r.origin + r.direction * (d.magnitude / r.direction.y);
+        var position = r.origin - r.direction * (r.origin.y / r.direction.y);
+        return new Vector2(position.x, position.z);
     }
     public void Update()
     {
