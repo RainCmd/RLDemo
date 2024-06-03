@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: Splats
   m_EditorClassIdentifier: 
   _list:
-  - splat: {fileID: 2800000, guid: d02c0845ec8697e4e918dc32cfefbf48, type: 3}
+  - splat: {fileID: 2800000, guid: e7a1b803fd483c64093609a10d55e268, type: 3}
     extend: 1
     weight: 3
-    cohesion: 0.75
+    cohesion: 0.95
   - splat: {fileID: 2800000, guid: 6fcb3b718f98ac047b1ea52ed203a0ec, type: 3}
     extend: 1
     weight: 7
-    cohesion: 0.85
-  - splat: {fileID: 2800000, guid: e7a1b803fd483c64093609a10d55e268, type: 3}
+    cohesion: 0.95
+  - splat: {fileID: 2800000, guid: d02c0845ec8697e4e918dc32cfefbf48, type: 3}
     extend: 1
     weight: 1
-    cohesion: 0.85
+    cohesion: 0.99

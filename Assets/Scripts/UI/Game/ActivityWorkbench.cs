@@ -24,7 +24,7 @@ public class ActivityWorkbench : UIActivity
         for (int i = 0; i < 3; i++)
         {
             var slots = weaponSlots[i] = new List<ActivityWorkbenchWeaponSlot>();
-            for (var c = 0; i < Config.WandSlotSize; c++)
+            for (var c = 0; c < Config.WandSlotSize; c++)
             {
                 var go = Instantiate(weaponSlotPrefab);
                 go.transform.SetParent(wandContents[i], false);
