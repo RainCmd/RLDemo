@@ -47,6 +47,7 @@ namespace InitGame
 
     //逻辑更新开始前
     public GameEntry()
+        Debug("启动！")
         StartWorld()
 
     public native OnLoadGameEntity(integer id, string resource, string anim, real3 forward, real3 position)

@@ -1137,7 +1137,7 @@ namespace RainLanguage
                 this.onExceptionExit = onExceptionExit;
             }
         }
-        public class RainKernel : IDisposable
+        public abstract class RainKernel : IDisposable
         {
             private void* kernel;
             public RainKernel(void* kernel)
@@ -1214,6 +1214,14 @@ namespace RainLanguage
                 return false;
             }
             public static bool operator !=(RainKernel left, RainKernel right) { return !(left == right); }
+        }
+        private class RainKernelMain : RainKernel
+        {
+            private readonly ExternStartupParameter parameter;
+            public RainKernelMain(void* kernel, ExternStartupParameter parameter) : base(kernel)
+            {
+                this.parameter = parameter;
+            }
         }
         private class RainKernelCopy : RainKernel
         {
@@ -2170,12 +2178,19 @@ namespace RainLanguage
         }
         [DllImport(RainLanguageDLLName, EntryPoint = "Extern_CreateKernel", CallingConvention = CallingConvention.Cdecl)]
         private extern static void* CreateKernel(ExternStartupParameter parameter);
+        [DllImport(RainLanguageDLLName, EntryPoint = "Extern_CreateKernel2", CallingConvention = CallingConvention.Cdecl)]
+        private extern static void* CreateKernel(ExternStartupParameter parameter, ExternProgramDatabaseLoader loader, ExternProgramDatabaseUnloader unloader);
         public static RainKernel CreateKernel(StartupParameter startupParameter)
+        {
+            return CreateKernel(startupParameter, null);
+        }
+        public static RainKernel CreateKernel(StartupParameter startupParameter, DataLoader progressDatabaseLoader)
         {
             var libraries = new void*[startupParameter.libraries.Length];
             for (int i = 0; i < startupParameter.libraries.Length; i++) libraries[i] = startupParameter.libraries[i].GetSource();
             fixed (void** plibraries = libraries)
-                return new RainKernel(CreateKernel(new ExternStartupParameter(plibraries, (uint)startupParameter.libraries.Length, startupParameter.seed, startupParameter.stringCapacity, startupParameter.entityCapacity,
+            {
+                var parameter = new ExternStartupParameter(plibraries, (uint)startupParameter.libraries.Length, startupParameter.seed, startupParameter.stringCapacity, startupParameter.entityCapacity,
                     (kernel, entity) => startupParameter.onReferenceEntity(new RainKernelCopy(kernel), entity),
                     (kernel, entity) => startupParameter.onReleaseEntity(new RainKernelCopy(kernel), entity),
                     libName => RainLibrary.InternalCreate(startupParameter.libraryLoader(NativeString.GetString(libName))),
@@ -2192,7 +2207,13 @@ namespace RainLanguage
                         var frames = new RainStackFrame[count];
                         for (int i = 0; i < count; i++) frames[i] = new RainStackFrame(stackFrames[i].libName, stackFrames[i].functionName, stackFrames[i].address);
                         startupParameter.onExceptionExit?.Invoke(new RainKernelCopy(kernel), frames, msg);
-                    })));
+                    });
+                if (progressDatabaseLoader != null)
+                    return new RainKernelMain(CreateKernel(parameter,
+                        name => RainProgramDatabase.InternalCreate(progressDatabaseLoader(NativeString.GetString(name))),
+                        RainProgramDatabase.DeleteRainProgramDatabase), parameter);
+                else return new RainKernelMain(CreateKernel(parameter), parameter);
+            }
         }
         private delegate void* ExternProgramDatabaseLoader(void* name);
         private delegate void ExternProgramDatabaseUnloader(void* database);

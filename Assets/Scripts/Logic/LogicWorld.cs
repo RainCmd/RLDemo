@@ -172,14 +172,13 @@ public class LogicWorld : IDisposable
         var parameter = new StartupParameter(libs, seed, 0xff, 0xff,
             OnReferenceEntity, OnReleaseEntity,
             LoadLibrary, LoadCaller, OnExceptionExit);
-        kernel = RainLanguageAdapter.CreateKernel(parameter);
+        kernel = RainLanguageAdapter.CreateKernel(parameter, LoadPDB);
         using (var init = kernel.FindFunction("GameMain"))
         using (var invoker = init.CreateInvoker())
             invoker.Start(true, false);
         InitOperFuncs();
         loading.Progress = 1;
     }
-
     private OnCaller LoadCaller(Kernel kernel, string fullName, RainType[] parameters)
     {
         if (callerMap.TryGetValue(fullName, out CallerHelper helper)) return helper.OnCaller;
@@ -446,6 +445,10 @@ public class LogicWorld : IDisposable
     private byte[] LoadLibrary(string name)
     {
         return UIManager.LoadResource(string.Format("RainLibraries/{0}.lib", name));
+    }
+    private byte[] LoadPDB(string name)
+    {
+        return UIManager.LoadResource(string.Format("RainProgramDatabase/{0}.pdb", name));
     }
     private readonly Dictionary<string, RainLanguageAdapter.RainProgramDatabase> databaseMap = new Dictionary<string, RainLanguageAdapter.RainProgramDatabase>();
     private void OnExceptionExit(Kernel kernel, RainStackFrame[] frames, string msg)

@@ -4,7 +4,8 @@
             "name": "附加到进程",
             "request": "attach",
             "type": "雨言附加到进程",
-            "ProjectName": "RLDemo"
+            "ProjectName": "RLDemo",
+            "Fixed": true
         }
     ]
 }
