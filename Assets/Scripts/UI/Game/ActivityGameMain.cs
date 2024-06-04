@@ -57,6 +57,7 @@ public class ActivityGameMain : UIActivity
 
     public override void OnDelete()
     {
+        if (Manager.Renderer == null) return;
         Manager.Renderer.OnLocalHeroChanged -= Renderer_OnLocalHeroChanged;
 
         pickList.UnInit();

@@ -13,18 +13,25 @@ public class CompileRainScripts
 {
     private class CodeFile : BuildParameter.ICodeFile
     {
-        public string Path { get; private set; }
+        private string path;
+        public string Path
+        {
+            get
+            {
+                return path.Substring(scriptsPath.Length);
+            }
+        }
         public string Content
         {
             get
             {
-                using (var sr = new StreamReader(Path))
+                using (var sr = new StreamReader(path))
                     return sr.ReadToEnd();
             }
         }
         public CodeFile(string path)
         {
-            Path = path;
+            this.path = path;
         }
     }
     private static byte[] LoadLibrary(string name)

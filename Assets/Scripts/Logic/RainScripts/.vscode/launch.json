@@ -6,6 +6,16 @@
             "type": "雨言附加到进程",
             "ProjectName": "RLDemo",
             "Fixed": true
+        },
+        {
+            "name": "单元测试",
+            "request": "launch",
+            "type": "雨言调试运行",
+            "EntryPoint": "GameEntry",
+            "Timesnap": 100,
+            "ErrorLevel": 4,
+            "ProjectName": "RainTest",
+            "Fixed": true
         }
     ]
 }

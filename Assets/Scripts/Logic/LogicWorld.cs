@@ -166,13 +166,12 @@ public class LogicWorld : IDisposable
     {
         RegistFunctions();
         this.ctrlIds = ctrlIds;
-        var lib = RainLib.Create(LoadLibrary("RLDemo"));
-        if (lib == null) throw new NullReferenceException("逻辑世界lib加载失败");
+        var lib = RainLib.Create(LoadLibrary("RLDemo")) ?? throw new NullReferenceException("逻辑世界lib加载失败");
         var libs = new RainLib[] { lib };
         var parameter = new StartupParameter(libs, seed, 0xff, 0xff,
             OnReferenceEntity, OnReleaseEntity,
             LoadLibrary, LoadCaller, OnExceptionExit);
-        kernel = RainLanguageAdapter.CreateKernel(parameter, LoadPDB);
+        kernel = RainLanguageAdapter.CreateKernel(parameter, LoadProgramDatabase);
         using (var init = kernel.FindFunction("GameMain"))
         using (var invoker = init.CreateInvoker())
             invoker.Start(true, false);
@@ -445,10 +444,6 @@ public class LogicWorld : IDisposable
     private byte[] LoadLibrary(string name)
     {
         return UIManager.LoadResource(string.Format("RainLibraries/{0}.lib", name));
-    }
-    private byte[] LoadPDB(string name)
-    {
-        return UIManager.LoadResource(string.Format("RainProgramDatabase/{0}.pdb", name));
     }
     private readonly Dictionary<string, RainLanguageAdapter.RainProgramDatabase> databaseMap = new Dictionary<string, RainLanguageAdapter.RainProgramDatabase>();
     private void OnExceptionExit(Kernel kernel, RainStackFrame[] frames, string msg)
