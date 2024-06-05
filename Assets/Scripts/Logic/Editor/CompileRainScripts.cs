@@ -13,12 +13,13 @@ public class CompileRainScripts
 {
     private class CodeFile : BuildParameter.ICodeFile
     {
-        private string path;
+        public readonly string path;
+        public readonly string relativePath;
         public string Path
         {
             get
             {
-                return path.Substring(scriptsPath.Length);
+                return relativePath;
             }
         }
         public string Content
@@ -32,6 +33,7 @@ public class CompileRainScripts
         public CodeFile(string path)
         {
             this.path = path;
+            relativePath = path.Substring(scriptsPath.Length);
         }
     }
     private static byte[] LoadLibrary(string name)
@@ -82,8 +84,7 @@ public class CompileRainScripts
     {
         var path = msg.Path;
         var file = files.Find(v => v.Path == path);
-        path = path.Replace(dataPath, "Assets");
-        var assetPath = path;
+        var assetPath = scriptsPath.Replace(dataPath, "Assets") + path;
         var detail = msg.Detail;
         var fidx = path.LastIndexOfAny(new char[] { '\\', '/' });
         var sidx = path.LastIndexOf('.');
