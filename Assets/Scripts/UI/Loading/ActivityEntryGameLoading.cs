@@ -57,13 +57,22 @@ public class ActivityEntryGameLoading : UIActivity
         room.OnRemovePlayerInfo += OnRemovePlayerInfo;
         room.OnUpdateMember += OnUpdateMember;
         room.OnUpdatePlayerLoading += OnUpdatePlayerLoading;
+        room.OnEntryGame += OnEntryGame;
         CreatePlayer(new RoomInfo.MemberInfo(room.Info.owner, room.Info.ctrlId, true, 0));
         lock (room.Info.members)
             foreach (var item in room.Info.members)
                 CreatePlayer(item);
     }
+
+    private void OnEntryGame()
+    {
+        Deinit();
+        room = null;
+    }
+
     private void Deinit()
     {
+        room.OnEntryGame -= OnEntryGame;
         room.OnUpdatePlayerLoading -= OnUpdatePlayerLoading;
         room.OnUpdateMember -= OnUpdateMember;
         room.OnRemovePlayerInfo -= OnRemovePlayerInfo;
@@ -95,7 +104,7 @@ public class ActivityEntryGameLoading : UIActivity
     }
     public override void OnDelete()
     {
-        if (room != null)
+        if (room != null && room.State == RoomState.Loading)
         {
             Deinit();
             room.Dispose();

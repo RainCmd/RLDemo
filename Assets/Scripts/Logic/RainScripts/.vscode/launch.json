@@ -12,7 +12,7 @@
             "request": "launch",
             "type": "雨言调试运行",
             "EntryPoint": "GameEntry",
-            "Timesnap": 100,
+            "Timestep": 100,
             "ErrorLevel": 4,
             "ProjectName": "RainTest",
             "Fixed": true
