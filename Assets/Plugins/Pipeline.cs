@@ -13,27 +13,20 @@ public class Pipeline<T>
     }
     public bool En(T value)
     {
-        if (end - start > (uint)values.Length)
+        if (end - start >= (uint)values.Length)
         {
-            if (queue != null)
-            {
-                while (queue.Count > 0 && end - start > (uint)values.Length)
-                    values[(end++) & mask] = queue.Dequeue();
-                if(end - start <= (uint)values.Length)
-                {
-                    queue.Enqueue(value);
-                    return true;
-                }
-            }
-            values[(end++) & mask] = value;
-            return true;
+            if (queue != null) queue.Enqueue(value);
+            else return false;
         }
         else if (queue != null)
         {
             queue.Enqueue(value);
-            return true;
+            while (queue.Count > 0)
+                if (end - start >= (uint)values.Length) break;
+                else values[(end++) & mask] = queue.Dequeue();
         }
-        return false;
+        else values[(end++) & mask] = value;
+        return true;
     }
     public bool De(out T value)
     {
