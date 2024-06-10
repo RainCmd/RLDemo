@@ -17,37 +17,46 @@ public class ActivityWorkbench : UIActivity
     [SerializeField]
     private RectTransform poolRoot;
     private GameMgr gameMgr;
+    private PlayerData localPlayerData;
     private Stack<ActivityWorkbenchOperableNode> nodePool = new Stack<ActivityWorkbenchOperableNode>();
     public void Init(GameMgr gameMgr)
     {
         this.gameMgr = gameMgr;
-        for (int i = 0; i < 3; i++)
+        if (gameMgr.Renderer.playerDataManager.TryGet(gameMgr.Renderer.playerDataManager.localPlayer, out localPlayerData))
         {
-            var slots = weaponSlots[i] = new List<ActivityWorkbenchWeaponSlot>();
-            for (var c = 0; c < Config.WandSlotSize; c++)
+            for (int i = 0; i < 3; i++)
             {
-                var go = Instantiate(weaponSlotPrefab);
-                go.transform.SetParent(wandContents[i], false);
-                go.gameObject.SetActive(true);
-                var slot = go.GetComponent<ActivityWorkbenchWeaponSlot>();
-                slot.Init(this, i, c);
-                slots.Add(slot);
+                var slots = weaponSlots[i] = new List<ActivityWorkbenchWeaponSlot>();
+                for (var c = 0; c < Config.WandSlotSize; c++)
+                {
+                    var go = Instantiate(weaponSlotPrefab);
+                    go.transform.SetParent(wandContents[i], false);
+                    go.gameObject.SetActive(true);
+                    var slot = go.GetComponent<ActivityWorkbenchWeaponSlot>();
+                    slot.Init(this, i, c);
+                    slots.Add(slot);
+                }
+                RefreshWeapon(i);
             }
-            RefreshWeapon(i);
+            RefreshBag();
+            localPlayerData.WandNodeChanged += RefreshWeapon;
+            localPlayerData.BagListChanged += RefreshBag;
         }
-        RefreshBag();
-        gameMgr.Renderer.OnWandUpdate += RefreshWeapon;
-        gameMgr.Renderer.OnBagListUpdate += RefreshBag;
     }
     public override void OnDelete()
     {
-        gameMgr.Renderer.OnBagListUpdate -= RefreshBag;
-        gameMgr.Renderer.OnWandUpdate -= RefreshWeapon;
+        if (localPlayerData != null)
+        {
+            localPlayerData.BagListChanged -= RefreshBag;
+            localPlayerData.WandNodeChanged -= RefreshWeapon;
+            localPlayerData = null;
+        }
     }
-    private void RefreshWeapon(int wandId)
+    private void RefreshWeapon(long wandId)
     {
+        if (localPlayerData == null) return;
         var slots = weaponSlots[wandId];
-        var wand = gameMgr.Renderer.wands[wandId];
+        var wand = localPlayerData.wands[wandId];
         for (int i = 0; i < wand.Length; i++)
         {
             slots[i].SetNode(wand[i]);
@@ -55,7 +64,8 @@ public class ActivityWorkbench : UIActivity
     }
     public void RefreshBag()
     {
-        var bag = gameMgr.Renderer.bagList;
+        if (localPlayerData == null) return;
+        var bag = localPlayerData.bagList;
         while (bag.Count > bagNodes.Count)
         {
             bagNodes.Add(GetNode(bagContent));
@@ -92,11 +102,12 @@ public class ActivityWorkbench : UIActivity
     }
     private void OnEndDragNode(PointerEventData data)
     {
+        if (localPlayerData == null) return;
         if (draggedNode)
         {
             if (RectTransformUtility.RectangleContainsScreenPoint(bagViewport, data.position))
             {
-                if (!gameMgr.Renderer.bagList.Contains(draggedNode.nodeId))
+                if (!localPlayerData.bagList.Contains(draggedNode.nodeId))
                 {
                     gameMgr.Room.UpdateOperator(Operator.Pick(draggedNode.nodeId));
                 }

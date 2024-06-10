@@ -13,26 +13,11 @@ public class RendererWorld : IDisposable
     private readonly Dictionary<long, GameUnit> units = new Dictionary<long, GameUnit>();
     public readonly Dictionary<long, LogicBuffEntity> buffs = new Dictionary<long, LogicBuffEntity>();
     public readonly Dictionary<long, LogicMagicNodeEntity> magicNodes = new Dictionary<long, LogicMagicNodeEntity>();
-    private bool activeRendererEntityClearFlag = false;
-    private readonly HashSet<RendererEntity> activeRendererEntities = new HashSet<RendererEntity>();
-    private readonly Dictionary<string, Stack<RendererEntity>> rendererEntityPool = new Dictionary<string, Stack<RendererEntity>>();
 
-    #region local player data
-    public int playerWand;
-    public event Action OnPlayerWandChanged;
-    public LogicTimeSpan[] wandCDs = new LogicTimeSpan[3];
-    public event Action<int> OnWandCDChanged;
-    public HashSet<long> pickList = new HashSet<long>();
-    public event Action OnPickListUpdate;
-    public HashSet<long> bagList = new HashSet<long>();
-    public event Action OnBagListUpdate;
-    public long[][] wands = { new long[Config.WandSlotSize], new long[Config.WandSlotSize], new long[Config.WandSlotSize] };
-    public event Action<int> OnWandUpdate;
-    #endregion
+    public readonly RendererEntityManager rendererEntityManager = new RendererEntityManager();
 
-    public long LocalPlayerId { get; private set; }
-    public long LocalHero { get; private set; }
-    public event Action OnLocalHeroChanged;
+    public readonly PlayerDataManager playerDataManager = new PlayerDataManager();
+
     public GameMgr Mgr { get; private set; }
 
     #region logic=>renderer缓冲区
@@ -63,12 +48,12 @@ public class RendererWorld : IDisposable
                 for (int i = 0; i < info.members.Count; i++)
                     infos[i + 1] = new CtrlInfo(info.members[i].ctrlId, info.members[i].player.name);
                 var loadResult = world.LoadGameData(infos);
-                LocalPlayerId = mgr.GetPlayerId(PlayerInfo.Local.id);
+                playerDataManager.localPlayer = mgr.GetPlayerId(PlayerInfo.Local.id);
 
-                foreach (var item in loadResult.entities)
-                    EnL2REvent(L2RData.EntityChanged(item.Value));
-                foreach (var item in loadResult.units)
-                    EnL2REvent(L2RData.UpdateUnitEntity(item.Value));
+                foreach (var item in loadResult.entities.Values)
+                    EnL2REvent(L2RData.EntityChanged(item));
+                foreach (var item in loadResult.units.Values)
+                    EnL2REvent(L2RData.UpdateUnitEntity(item));
                 foreach (var unitBuffs in loadResult.buffs)
                     foreach (var item in unitBuffs.Value)
                     {
@@ -114,10 +99,8 @@ public class RendererWorld : IDisposable
         units.Clear();
         foreach (var item in entities) item.Value.OnRemove(true);
         entities.Clear();
-        activeRendererEntityClearFlag = true;
-        foreach (var entity in activeRendererEntities) entity.Recycle();
-        activeRendererEntityClearFlag = false;
-        activeRendererEntities.Clear();
+        rendererEntityManager.Dispose();
+
         floatTextMsgPipeline.Clear();
         //todo 清理
     }
@@ -144,38 +127,21 @@ public class RendererWorld : IDisposable
             switch (data.type)
             {
                 case L2RType.PlayerHeroChanged:
-                    if (data.player == LocalPlayerId)
-                    {
-                        LocalHero = data.hero;
-                        OnLocalHeroChanged?.Invoke();
-                    }
+                    playerDataManager.OnPlayerHeroChanged(data.player, data.hero);
                     break;
                 case L2RType.PlayerWandChanged:
-                    if (data.player == LocalPlayerId)
-                    {
-                        playerWand = (int)data.wand;
-                        OnPlayerWandChanged?.Invoke();
-                    }
+                    playerDataManager.OnPlayerWandChanged(data.player, data.wand);
                     break;
                 case L2RType.PlayerMagicNodePickListChanged:
-                    if (data.player == LocalPlayerId)
+                    if (!magicNodes.ContainsKey(data.node.id))
                     {
-                        if (!magicNodes.ContainsKey(data.node.id))
-                        {
-                            L2R_Err("PlayerMagicNodePickListChanged: node id {0} 未找到".Format(data.node.id));
-                            break;
-                        }
-                        if (data.addition) pickList.Add(data.node.id);
-                        else pickList.Remove(data.node.id);
-                        OnPickListUpdate?.Invoke();
+                        L2R_Err("PlayerMagicNodePickListChanged: node id {0} 未找到".Format(data.node.id));
+                        break;
                     }
+                    playerDataManager.OnPickListChanged(data.player, data.node.id, data.addition);
                     break;
                 case L2RType.PlayerWandCDUpdate:
-                    if (data.player == LocalPlayerId)
-                    {
-                        wandCDs[data.wand] = data.cd;
-                        OnWandCDChanged?.Invoke((int)data.wand);
-                    }
+                    playerDataManager.OnWandCDChanged(data.player, data.wand, data.cd);
                     break;
                 case L2RType.EntityChanged:
                     {
@@ -246,29 +212,20 @@ public class RendererWorld : IDisposable
                     if (!magicNodes.Remove(data.node.id)) L2R_Err("RemoveMagicNodeEntity: node id {0} 未找到".Format(data.node.id));
                     break;
                 case L2RType.PlayerBagMagicNodeChanged:
-                    if (data.player == LocalPlayerId)
+                    if (!magicNodes.ContainsKey(data.node.id))
                     {
-                        if (!magicNodes.ContainsKey(data.node.id))
-                        {
-                            L2R_Err("PlayerBagMagicNodeChanged: node id {0} 未找到".Format(data.node.id));
-                            break;
-                        }
-                        if (data.addition) bagList.Add(data.node.id);
-                        else bagList.Remove(data.node.id);
-                        OnBagListUpdate?.Invoke();
+                        L2R_Err("PlayerBagMagicNodeChanged: node id {0} 未找到".Format(data.node.id));
+                        break;
                     }
+                    playerDataManager.OnBagListChanged(data.player, data.node.id, data.addition);
                     break;
                 case L2RType.PlayerWandMagicNodeChanged:
-                    if (data.player == LocalPlayerId)
+                    if (!magicNodes.ContainsKey(data.node.id))
                     {
-                        if (!magicNodes.ContainsKey(data.node.id))
-                        {
-                            L2R_Err("PlayerBagMagicNodeChanged: node id {0} 未找到".Format(data.node.id));
-                            break;
-                        }
-                        wands[data.wand][data.slot] = data.node.id;
-                        OnWandUpdate?.Invoke((int)data.wand);
+                        L2R_Err("PlayerBagMagicNodeChanged: node id {0} 未找到".Format(data.node.id));
+                        break;
                     }
+                    playerDataManager.OnWandNodeChanged(data.player, data.wand, data.slot, data.node.id);
                     break;
             }
         }
@@ -279,42 +236,6 @@ public class RendererWorld : IDisposable
         Debug.LogError(msg);
     }
     public void LateUpdate() { OnLateUpdate?.Invoke(); }
-
-    public RendererEntity CreateRendererEntity(string resource)
-    {
-        if (rendererEntityPool.TryGetValue(resource, out var pool) && pool.Count > 0)
-        {
-            var result = pool.Pop();
-            result.Init();
-            activeRendererEntities.Add(result);
-            return result;
-        }
-        else
-        {
-            var go = Resources.Load(resource) as GameObject;
-            var result = go?.GetComponent<RendererEntity>();
-            if (result != null)
-            {
-                result.OnCreate(this, resource);
-                result.Init();
-                activeRendererEntities.Add(result);
-                return result;
-            }
-        }
-        throw new Exception("资源加载失败：" + resource);
-    }
-    public void RecycleRendererEntity(RendererEntity entity)
-    {
-        if (entity == null) return;
-        if (!activeRendererEntityClearFlag)
-            activeRendererEntities.Remove(entity);
-        if (!rendererEntityPool.TryGetValue(entity.Resource, out var pool))
-        {
-            pool = new Stack<RendererEntity>();
-            rendererEntityPool.Add(entity.Resource, pool);
-        }
-        pool.Push(entity);
-    }
 
     public bool TryGetEntity(long id, out GameEntity entity)
     {

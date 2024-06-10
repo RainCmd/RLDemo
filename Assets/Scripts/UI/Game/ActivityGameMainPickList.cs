@@ -8,25 +8,35 @@ public class ActivityGameMainPickList : MonoBehaviour
     private List<ActivityGameMainPickListItem> list = new List<ActivityGameMainPickListItem>();
     private Stack<ActivityGameMainPickListItem> pool = new Stack<ActivityGameMainPickListItem>();
     private GameMgr gameMgr;
+    private PlayerData localPlayerData;
     public void Init(GameMgr gameMgr)
     {
         this.gameMgr = gameMgr;
-        gameMgr.Renderer.OnPickListUpdate += OnPickListUpdate;
+        if (gameMgr.Renderer.playerDataManager.TryGet(gameMgr.Renderer.playerDataManager.localPlayer, out localPlayerData))
+        {
+            localPlayerData.PickListChanged += OnPickListUpdate;
+            OnPickListUpdate();
+        }
     }
     public void UnInit()
     {
-        gameMgr.Renderer.OnPickListUpdate -= OnPickListUpdate;
+        if (localPlayerData != null)
+        {
+            localPlayerData.PickListChanged -= OnPickListUpdate;
+            localPlayerData = null;
+        }
     }
     public void OnPickListUpdate()
     {
-        while (gameMgr.Renderer.pickList.Count < list.Count)
+        if (localPlayerData == null) return;
+        while (localPlayerData.pickList.Count < list.Count)
         {
             var item = list[list.Count - 1];
             list.RemoveAt(list.Count - 1);
             item.gameObject.SetActive(false);
             pool.Push(item);
         }
-        while (gameMgr.Renderer.pickList.Count > list.Count)
+        while (localPlayerData.pickList.Count > list.Count)
         {
             if (pool.Count > 0) list.Add(pool.Pop());
             else
@@ -36,7 +46,7 @@ public class ActivityGameMainPickList : MonoBehaviour
             }
         }
         var idx = 0;
-        foreach (var item in gameMgr.Renderer.pickList)
+        foreach (var item in localPlayerData.pickList)
         {
             list[idx].gameObject.SetActive(true);
             list[idx].Init(gameMgr, item);

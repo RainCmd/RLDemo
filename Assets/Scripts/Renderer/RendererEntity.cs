@@ -1,13 +1,89 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
+using System.Reflection;
+
+public class RendererEntityManager : System.IDisposable
+{
+    private readonly GameObject root;
+    private readonly Transform activeRoot;
+    private readonly Transform poolRoot;
+    public readonly RendererWorld world;
+    private readonly HashSet<RendererEntity> entities = new HashSet<RendererEntity>();
+    private readonly Dictionary<string, Stack<RendererEntity>> pool = new Dictionary<string, Stack<RendererEntity>>();
+    public RendererEntityManager()
+    {
+        root = new GameObject("RendererEntities");
+        Object.DontDestroyOnLoad(root);
+        activeRoot = new GameObject("active").transform;
+        activeRoot.SetParent(root.transform, false);
+        poolRoot = new GameObject("pool").transform;
+        poolRoot.SetParent(root.transform, false);
+    }
+    private GameObject Load(string resources)
+    {
+        var source = Resources.Load(resources) as GameObject;
+        if (!source) return null;
+        return Object.Instantiate(source);
+    }
+    private void Init(RendererEntity entity)
+    {
+        entity.gameObject.SetActive(true);
+        entity.transform.SetParent(activeRoot);
+        entities.Add(entity);
+        entity.Init();
+    }
+    public RendererEntity Create(string resources)
+    {
+        if (pool.TryGetValue(resources, out var stack) && stack.Count > 0)
+        {
+            var result = stack.Pop();
+            Init(result);
+            return result;
+        }
+        else
+        {
+            var go = Load(resources);
+            var result = go?.GetComponent<RendererEntity>();
+            if (!result) return null;
+            result.OnCreate(this, resources);
+            Init(result);
+            return result;
+        }
+    }
+    public void Recycle(RendererEntity entity)
+    {
+        if (!entities.Remove(entity)) return;
+        entity.Recycle();
+        entity.gameObject.SetActive(false);
+        entity.transform.SetParent(poolRoot);
+        if (pool.TryGetValue(entity.resources, out var stack)) stack.Push(entity);
+        else
+        {
+            stack = new Stack<RendererEntity>();
+            stack.Push(entity);
+            pool.Add(entity.resources, stack);
+        }
+    }
+
+    public void Dispose()
+    {
+        foreach (var entity in entities) entity.Recycle();
+        entities.Clear();
+        pool.Clear();
+        Object.DestroyImmediate(root, true);
+    }
+}
 
 public abstract class RendererEntity : MonoBehaviour
 {
-    public RendererWorld World { get; private set; }
-    public string Resource { get; private set; }
-    public void OnCreate(RendererWorld world, string resource)
+    private static readonly FieldInfo field_manager = typeof(RendererEntity).GetField("manager");
+    private static readonly FieldInfo field_resources = typeof(RendererEntity).GetField("resources");
+    public readonly RendererEntityManager manager;
+    public readonly string resources;
+    public void OnCreate(RendererEntityManager manager, string resource)
     {
-        World = world;
-        Resource = resource;
+        field_manager.SetValue(this, manager);
+        field_resources.SetValue(this, resource);
     }
     public virtual void SetPosition(Vector3 position) { }
     public virtual void SetRotation(Quaternion rotation) { }
@@ -24,6 +100,5 @@ public abstract class RendererEntity : MonoBehaviour
     public void Recycle()
     {
         OnRecycle();
-        World.RecycleRendererEntity(this);
     }
 }

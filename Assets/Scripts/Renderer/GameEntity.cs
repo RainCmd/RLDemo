@@ -64,7 +64,7 @@ public class GameEntity
         {
             if (entity == null)
             {
-                entity = world.CreateRendererEntity(resource);
+                entity = world.rendererEntityManager.Create(resource);
                 entity.PlayAnim(anim);
                 entity.SetRotation(Quaternion.Euler(forward));
                 entity.SetPosition(position);

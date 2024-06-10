@@ -19,6 +19,7 @@ public class ActivityGameMain : UIActivity
     public Sprite[] wandsOff;
     public Sprite[] wandsOn;
     public GameMgr Manager { get; private set; }
+    private PlayerData localPlayerData;
     private GameUnit localHero;
     private void Start()
     {
@@ -45,45 +46,60 @@ public class ActivityGameMain : UIActivity
         manager.Renderer.OnDestroyGameEntity += floatInfoPanel.RemoveInfo;
         manager.Renderer.OnCreateFloatText += floatInfoPanel.ShowFloatText;
 
-        manager.Renderer.OnWandUpdate += OnWandClick;
-        OnWandClick(manager.Renderer.playerWand);
-        manager.Renderer.OnWandCDChanged += OnWandCDChanged;
-        for (int i = 0; i < 3; i++) OnWandCDChanged(i);
+        if (manager.Renderer.playerDataManager.TryGet(manager.Renderer.playerDataManager.localPlayer, out localPlayerData))
+        {
+            localPlayerData.WandChanged += OnWandChanged;
+            OnWandClick((int)localPlayerData.wand);
+            localPlayerData.WandCDChanged += OnWandCDChanged;
+            for (var i = 0; i < localPlayerData.wandCDs.Length; i++) OnWandCDChanged(i);
+            localPlayerData.HeroChanged += OnLocalHeroChanged;
+            OnLocalHeroChanged();
+        }
+
         pickList.Init(manager);
 
-        manager.Renderer.OnLocalHeroChanged += Renderer_OnLocalHeroChanged;
-        Renderer_OnLocalHeroChanged();
+    }
+
+    private void OnWandChanged()
+    {
+        if (localPlayerData != null)
+        {
+            OnWandClick((int)localPlayerData.wand);
+        }
     }
 
     public override void OnDelete()
     {
-        if (Manager.Renderer == null) return;
-        Manager.Renderer.OnLocalHeroChanged -= Renderer_OnLocalHeroChanged;
+        if (localPlayerData != null)
+        {
+            localPlayerData.HeroChanged -= OnLocalHeroChanged;
+            localPlayerData.WandCDChanged -= OnWandCDChanged;
+            localPlayerData.WandChanged -= OnWandChanged;
+            localPlayerData = null;
+        }
 
         pickList.UnInit();
-        Manager.Renderer.OnWandCDChanged -= OnWandCDChanged;
-        Manager.Renderer.OnWandUpdate -= OnWandClick;
 
         Manager.Renderer.OnCreateFloatText -= floatInfoPanel.ShowFloatText;
         Manager.Renderer.OnDestroyGameEntity -= floatInfoPanel.RemoveInfo;
         Manager.Renderer.OnCreateGameEntity -= floatInfoPanel.CreateInfo;
         Manager.Renderer.OnLateUpdate -= UpdateFloatPanel;
     }
-    private void Renderer_OnLocalHeroChanged()
+    private void OnLocalHeroChanged()
     {
         if (localHero != null)
         {
-            localHero.OnManaStateChanged -= LocalHero_OnManaStateChanged;
-            localHero.OnLifeStateChanged -= LocalHero_OnLifeStateChanged;
+            localHero.OnManaStateChanged -= OnManaStateChanged;
+            localHero.OnLifeStateChanged -= OnLifeStateChanged;
         }
         localHero = null;
-        if (Manager.Renderer.TryGetUnit(Manager.Renderer.LocalHero, out localHero))
+        if (localPlayerData != null && Manager.Renderer.TryGetUnit(localPlayerData.hero, out localHero))
         {
             heroInfoPanel.SetActive(true);
-            localHero.OnLifeStateChanged += LocalHero_OnLifeStateChanged;
-            LocalHero_OnLifeStateChanged(localHero.Life);
-            localHero.OnManaStateChanged += LocalHero_OnManaStateChanged;
-            LocalHero_OnManaStateChanged(localHero.Mana);
+            localHero.OnLifeStateChanged += OnLifeStateChanged;
+            OnLifeStateChanged(localHero.Life);
+            localHero.OnManaStateChanged += OnManaStateChanged;
+            OnManaStateChanged(localHero.Mana);
         }
         else
         {
@@ -91,11 +107,11 @@ public class ActivityGameMain : UIActivity
         }
     }
 
-    private void LocalHero_OnLifeStateChanged(GameUnitState state)
+    private void OnLifeStateChanged(GameUnitState state)
     {
         lifeText.text = state.ToString();
     }
-    private void LocalHero_OnManaStateChanged(GameUnitState state)
+    private void OnManaStateChanged(GameUnitState state)
     {
         manaText.text = state.ToString();
     }
@@ -109,9 +125,13 @@ public class ActivityGameMain : UIActivity
         for (int i = 0; i < wands.Length; i++)
             wands[i].sprite = i == index ? wandsOn[i] : wandsOff[i];
     }
-    private void OnWandCDChanged(int wand)
+    private void OnWandCDChanged(long wand)
     {
-        var cd = Manager.Renderer.wandCDs[wand];
+        if (localPlayerData != null)
+        {
+            var cd = localPlayerData.wandCDs[wand];
+
+        }
     }
     public void OnBuildClick()
     {
