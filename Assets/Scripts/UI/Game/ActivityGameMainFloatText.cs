@@ -34,15 +34,10 @@ public struct FloatText
 }
 public class ActivityGameMainFloatText : MonoBehaviour
 {
-    [HideInInspector]
     public RectTransform rectTransform;
+    [SerializeField]
     private Text text;
     public FloatText FloatText { get; private set; }
-    private void Awake()
-    {
-        rectTransform = transform as RectTransform;
-        text = text.GetComponent<Text>();
-    }
     public void Init(FloatText floatText)
     {
         FloatText = floatText;

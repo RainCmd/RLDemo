@@ -253,6 +253,11 @@ public class RendererWorld : IDisposable
         return units.TryGetValue(id, out unit);
     }
 
+    public IEnumerable<GameUnit> GetGameUnits()
+    {
+        return units.Values;
+    }
+
     public void Dispose()
     {
         mapBlock.Dispose();

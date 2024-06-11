@@ -3,6 +3,7 @@ using UnityEngine;
 public class ActivityGameMainFloatInfoPanel : MonoBehaviour
 {
     public ActivityGameMain main;
+    private GameMgr mgr;
     public GameObject playerPrefab;
     public GameObject npcPrefab;
     public GameObject floatTextPrefab;
@@ -26,6 +27,20 @@ public class ActivityGameMainFloatInfoPanel : MonoBehaviour
         npcPool = new Stack<ActivityGameMainNpcFloatInfo>();
         floatTexts = new List<ActivityGameMainFloatText>();
         floatTextPool = new Stack<ActivityGameMainFloatText>();
+    }
+    public void Init(GameMgr mgr)
+    {
+        this.mgr = mgr;
+        mgr.Renderer.OnCreateGameUnit += CreateInfo;
+        mgr.Renderer.OnDestroyGameUnit += RemoveInfo;
+        mgr.Renderer.OnCreateFloatText += ShowFloatText;
+        entities.AddRange(mgr.Renderer.GetGameUnits());
+    }
+    public void Deinit()
+    {
+        mgr.Renderer.OnCreateGameUnit -= CreateInfo;
+        mgr.Renderer.OnDestroyGameUnit -= RemoveInfo;
+        mgr.Renderer.OnCreateFloatText -= ShowFloatText;
     }
     public void ShowFloatText(FloatText text)
     {

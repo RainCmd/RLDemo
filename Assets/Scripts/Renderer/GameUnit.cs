@@ -90,8 +90,8 @@ public class GameUnit
     public void Update(LogicUnitEntity unit)
     {
         UnitType = unit.type;
-        life = new GameUnitState((float)unit.hp, (float)unit.maxHP);
-        mana = new GameUnitState((float)unit.mp, (float)unit.maxMP);
+        Life = new GameUnitState((float)unit.hp, (float)unit.maxHP);
+        Mana = new GameUnitState((float)unit.mp, (float)unit.maxMP);
         OnUpdate?.Invoke();
     }
     public void OnRemove()

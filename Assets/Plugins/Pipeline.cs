@@ -23,16 +23,25 @@ public class Pipeline<T>
             queue.Enqueue(value);
             while (queue.Count > 0)
                 if (end - start >= (uint)values.Length) break;
-                else values[(end++) & mask] = queue.Dequeue();
+                else
+                {
+                    values[end & mask] = queue.Dequeue();
+                    end++;
+                }
         }
-        else values[(end++) & mask] = value;
+        else
+        {
+            values[end & mask] = value;
+            end++;
+        }
         return true;
     }
     public bool De(out T value)
     {
         if (start < end)
         {
-            value = values[(start++) & mask];
+            value = values[start & mask];
+            start++;
             return true;
         }
         value = default;

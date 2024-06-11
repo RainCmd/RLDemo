@@ -4,15 +4,19 @@ public class ActivityGameMainNpcFloatInfo : MonoBehaviour
 {
     private RectTransform rt;
     public StateBar lifebar, manabar;
-    public RectTransform RectTransform { get { return rt; } }
+    public RectTransform RectTransform 
+    {
+        get 
+        {
+            if (!rt) rt = transform as RectTransform;
+            return rt;
+        }
+    }
     public GameMgr Manager { get; private set; }
     public GameUnit Unit { get; private set; }
-    private void Awake()
-    {
-        rt = transform as RectTransform;
-    }
     public virtual void Init(GameMgr manager, GameUnit entity)
     {
+        gameObject.SetActive(true);
         Manager = manager;
         Unit = entity;
         lifebar.State = entity.Life;
@@ -25,17 +29,17 @@ public class ActivityGameMainNpcFloatInfo : MonoBehaviour
             case UnitType.Npc:
                 {
                     manabar.gameObject.SetActive(true);
-                    var sd = rt.sizeDelta;
+                    var sd = RectTransform.sizeDelta;
                     sd.y = 8;
-                    rt.sizeDelta = sd;
+                    RectTransform.sizeDelta = sd;
                 }
                 break;
             case UnitType.NpcNoMana:
                 {
                     manabar.gameObject.SetActive(false);
-                    var sd = rt.sizeDelta;
+                    var sd = RectTransform.sizeDelta;
                     sd.y = 4;
-                    rt.sizeDelta = sd;
+                    RectTransform.sizeDelta = sd;
                 }
                 break;
         }

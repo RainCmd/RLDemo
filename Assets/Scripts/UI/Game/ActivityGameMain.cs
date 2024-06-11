@@ -41,9 +41,8 @@ public class ActivityGameMain : UIActivity
     {
         Manager = manager;
         manager.Renderer.OnLateUpdate += OnLateUpdate;
-        manager.Renderer.OnCreateGameUnit += floatInfoPanel.CreateInfo;
-        manager.Renderer.OnDestroyGameUnit += floatInfoPanel.RemoveInfo;
-        manager.Renderer.OnCreateFloatText += floatInfoPanel.ShowFloatText;
+
+        floatInfoPanel.Init(manager);
 
         if (manager.Renderer.playerDataManager.TryGet(manager.Renderer.playerDataManager.localPlayer, out localPlayerData))
         {
@@ -79,9 +78,7 @@ public class ActivityGameMain : UIActivity
 
         pickList.UnInit();
 
-        Manager.Renderer.OnCreateFloatText -= floatInfoPanel.ShowFloatText;
-        Manager.Renderer.OnDestroyGameUnit -= floatInfoPanel.RemoveInfo;
-        Manager.Renderer.OnCreateGameUnit -= floatInfoPanel.CreateInfo;
+        floatInfoPanel.Deinit();
         Manager.Renderer.OnLateUpdate -= OnLateUpdate;
     }
     private void OnLocalHeroChanged()
