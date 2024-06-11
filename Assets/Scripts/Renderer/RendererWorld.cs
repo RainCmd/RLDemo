@@ -5,8 +5,8 @@ using UnityEngine;
 public class RendererWorld : IDisposable
 {
     public event Action OnLateUpdate;
-    public event Action<GameUnit> OnCreateGameEntity;
-    public event Action<long> OnDestroyGameEntity;
+    public event Action<GameUnit> OnCreateGameUnit;
+    public event Action<long> OnDestroyGameUnit;
     public event Action<FloatText> OnCreateFloatText;
     private readonly MapBlockRenderer mapBlock;
     private readonly Dictionary<long, GameEntity> entities = new Dictionary<long, GameEntity>();
@@ -62,9 +62,10 @@ public class RendererWorld : IDisposable
                     }
                 foreach (var item in loadResult.magicNodes)
                     EnL2REvent(L2RData.UpdateMagicNodeEntity(item.Value));
-                //todo 加载玩家当前数据：背包，拾取列表，法杖状态，自身状态信息等
+
                 foreach (var player in loadResult.players)
                 {
+                    EnL2REvent(L2RData.PlayerHeroChanged(player.playerId, player.hero));
                     foreach (var item in player.bag)
                         EnL2REvent(L2RData.PlayerBagMagicNodeChanged(player.playerId, item, true));
                     for (int i = 0; i < player.wands.Length; i++)
@@ -84,6 +85,7 @@ public class RendererWorld : IDisposable
                 world.OnRendererMsg += EnL2REvent;
                 world.OnFloatTextMsg += OnFloatTextMsg;
             }
+            Update(0);
             loading.Progress = 1;
         }
     }
@@ -102,7 +104,6 @@ public class RendererWorld : IDisposable
         rendererEntityManager.Dispose();
 
         floatTextMsgPipeline.Clear();
-        //todo 清理
     }
     private void EnL2REvent(L2RData data)
     {
@@ -169,7 +170,12 @@ public class RendererWorld : IDisposable
                 case L2RType.UpdateUnitEntity:
                     {
                         if (units.TryGetValue(data.unit.id, out var unit)) unit.Update(data.unit);
-                        else if (entities.TryGetValue(data.unit.id, out var entity)) units.Add(data.unit.id, new GameUnit(entity, data.unit));
+                        else if (entities.TryGetValue(data.unit.id, out var entity))
+                        {
+                            unit = new GameUnit(entity, data.unit);
+                            units.Add(data.unit.id, unit);
+                            OnCreateGameUnit?.Invoke(unit);
+                        }
                         else L2R_Err("UpdateUnitEntity: unit id {0} 未找到对应的entity".Format(data.unit.id));
                     }
                     break;
@@ -179,6 +185,7 @@ public class RendererWorld : IDisposable
                         {
                             unit.OnRemove();
                             units.Remove(data.unit.id);
+                            OnDestroyGameUnit?.Invoke(data.unit.id);
                         }
                         else L2R_Err("RemoveUnitEntity: unit id {0} 未找到".Format(data.unit.id));
                     }

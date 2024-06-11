@@ -19,11 +19,20 @@ public class RendererEntityManager : System.IDisposable
         poolRoot = new GameObject("pool").transform;
         poolRoot.SetParent(root.transform, false);
     }
-    private GameObject Load(string resources)
+    private T Load<T>(string resources) where T : Component
     {
         var source = Resources.Load(resources) as GameObject;
-        if (!source) return null;
-        return Object.Instantiate(source);
+        if (!source)
+        {
+            Debug.LogError("资源加载失败:" + resources);
+            return null;
+        }
+        if (!source.GetComponent<T>())
+        {
+            Debug.LogError($"资源<color=#ffcc00>{resources}</color>不包含组件:<{typeof(T)}>");
+            return null;
+        }
+        return Object.Instantiate(source).GetComponent<T>();
     }
     private void Init(RendererEntity entity)
     {
@@ -42,8 +51,7 @@ public class RendererEntityManager : System.IDisposable
         }
         else
         {
-            var go = Load(resources);
-            var result = go?.GetComponent<RendererEntity>();
+            var result = Load<RendererEntity>(resources);
             if (!result) return null;
             result.OnCreate(this, resources);
             Init(result);
@@ -52,7 +60,7 @@ public class RendererEntityManager : System.IDisposable
     }
     public void Recycle(RendererEntity entity)
     {
-        if (!entities.Remove(entity)) return;
+        if (entity == null || !entities.Remove(entity)) return;
         entity.Recycle();
         entity.gameObject.SetActive(false);
         entity.transform.SetParent(poolRoot);
@@ -85,8 +93,8 @@ public abstract class RendererEntity : MonoBehaviour
         field_manager.SetValue(this, manager);
         field_resources.SetValue(this, resource);
     }
-    public virtual void SetPosition(Vector3 position) { }
-    public virtual void SetRotation(Quaternion rotation) { }
+    public virtual void SetPosition(Vector3 position) { transform.position = position; }
+    public virtual void SetRotation(Quaternion rotation) { transform.rotation = rotation; }
     public void Init()
     {
         OnInit();
@@ -95,6 +103,9 @@ public abstract class RendererEntity : MonoBehaviour
     public void PlayAnim(string name) { PlayAnim(name, 0); }
     public virtual void PlayAnim(string name, float time) { }
     public virtual void SetAnimSpeed(float speed) { }
+    /// <summary>
+    /// 表示生命周期不再受逻辑控制，自行决定回收时机
+    /// </summary>
     public virtual void Kill() { }
     protected virtual void OnRecycle() { }
     public void Recycle()

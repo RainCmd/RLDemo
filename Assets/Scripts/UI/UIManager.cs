@@ -55,15 +55,6 @@ public class UIManager : MonoBehaviour
         }
         while (tasksExe.Count > 0) tasksExe.Dequeue()();
     }
-    private void OnDestroy()
-    {
-        var cnt = activities.Count;
-        while (cnt-- > 0)
-        {
-            if (activities[cnt].gameObject.activeSelf) activities[cnt].OnHide();
-            activities[cnt].OnDelete();
-        }
-    }
     private IEnumerator DelayAction(Action action, float delaySecond)
     {
         yield return new WaitForSeconds(delaySecond);

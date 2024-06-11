@@ -53,7 +53,7 @@ public class GameEntity
         this->Move(forward, position, false)
     public Move(real3 forward, real3 position, bool immediately)
         if position != this.position
-            area->Move(this, position.xy)
+            area->Move(this, position.xz)
         this.forward = forward
         this.position = position
         OnUpdateEntityTransform(GetHandleID(), forward, position, immediately)

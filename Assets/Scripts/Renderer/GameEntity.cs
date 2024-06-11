@@ -66,18 +66,18 @@ public class GameEntity
             {
                 entity = world.rendererEntityManager.Create(resource);
                 entity.PlayAnim(anim);
-                entity.SetRotation(Quaternion.Euler(forward));
+                entity.SetRotation(Quaternion.LookRotation(forward, Vector3.up));
                 entity.SetPosition(position);
             }
             else
             {
-                if (lastForward != forward) entity.SetRotation(Quaternion.Euler(forward));
+                if (lastForward != forward) entity.SetRotation(Quaternion.LookRotation(forward, Vector3.up));
                 if (lastPosition != position) entity.SetPosition(position);
             }
         }
         else
         {
-            entity?.Recycle();
+            world.rendererEntityManager.Recycle(entity);
             entity = null;
         }
     }
@@ -87,8 +87,11 @@ public class GameEntity
     }
     public void OnRemove(bool immediately)
     {
-        if (immediately) entity.Recycle();
-        else entity.Kill();
-        entity = null;
+        if (entity != null)
+        {
+            if (immediately) world.rendererEntityManager.Recycle(entity);
+            else entity.Kill();
+            entity = null;
+        }
     }
 }

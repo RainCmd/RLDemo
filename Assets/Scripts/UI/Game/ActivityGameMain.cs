@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class ActivityGameMain : UIActivity
@@ -41,9 +40,9 @@ public class ActivityGameMain : UIActivity
     public void Init(GameMgr manager)
     {
         Manager = manager;
-        manager.Renderer.OnLateUpdate += UpdateFloatPanel;
-        manager.Renderer.OnCreateGameEntity += floatInfoPanel.CreateInfo;
-        manager.Renderer.OnDestroyGameEntity += floatInfoPanel.RemoveInfo;
+        manager.Renderer.OnLateUpdate += OnLateUpdate;
+        manager.Renderer.OnCreateGameUnit += floatInfoPanel.CreateInfo;
+        manager.Renderer.OnDestroyGameUnit += floatInfoPanel.RemoveInfo;
         manager.Renderer.OnCreateFloatText += floatInfoPanel.ShowFloatText;
 
         if (manager.Renderer.playerDataManager.TryGet(manager.Renderer.playerDataManager.localPlayer, out localPlayerData))
@@ -81,9 +80,9 @@ public class ActivityGameMain : UIActivity
         pickList.UnInit();
 
         Manager.Renderer.OnCreateFloatText -= floatInfoPanel.ShowFloatText;
-        Manager.Renderer.OnDestroyGameEntity -= floatInfoPanel.RemoveInfo;
-        Manager.Renderer.OnCreateGameEntity -= floatInfoPanel.CreateInfo;
-        Manager.Renderer.OnLateUpdate -= UpdateFloatPanel;
+        Manager.Renderer.OnDestroyGameUnit -= floatInfoPanel.RemoveInfo;
+        Manager.Renderer.OnCreateGameUnit -= floatInfoPanel.CreateInfo;
+        Manager.Renderer.OnLateUpdate -= OnLateUpdate;
     }
     private void OnLocalHeroChanged()
     {
@@ -116,8 +115,13 @@ public class ActivityGameMain : UIActivity
         manaText.text = state.ToString();
     }
 
-    private void UpdateFloatPanel()
+    private void OnLateUpdate()
     {
+        if (localHero != null)
+        {
+            var mgr = Manager.CameraMgr;
+            mgr.Target = localHero.entity.Position;
+        }
         if (gameObject.activeSelf) floatInfoPanel.UpdatePanel();
     }
     public void OnWandClick(int index)
@@ -143,6 +147,7 @@ public class ActivityGameMain : UIActivity
         {
             DestroyImmediate(Manager);
             Manager = null;
+            Close();
         }
         else exitProgress.fillAmount = 1;
     }

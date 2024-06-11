@@ -107,7 +107,8 @@ public class Unit GameEntity
         autoMoving = false
         ShowAnim(UNIT_ANIM_MOVE)
         var forward = DirToForward(dir)
-        Move(forward, position + moveSpeed * LOGIC_TIMESTEP * dis * forward)
+        var delta = moveSpeed * LOGIC_TIMESTEP * dis * forward
+        Move(forward, position + delta)
     public StopMove()
         if !valid
             return

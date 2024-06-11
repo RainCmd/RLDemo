@@ -2,8 +2,37 @@
 
 public class CameraMgr
 {
-    public Camera camera;
+    public readonly Camera camera;
     public Rect CameraArea { get; private set; }
+    public Vector3 Target
+    {
+        get
+        {
+            var position = camera.transform.position;
+            var forward = camera.transform.forward;
+            return position - forward * (position.y / forward.y);
+        }
+        set
+        {
+            var position = camera.transform.position;
+            var forward = camera.transform.forward;
+            position -= forward * (position.y / forward.y);
+            value -= position;
+            value.y = 0;
+            camera.transform.position += value;
+        }
+    }
+    public float Height
+    {
+        get
+        {
+            return (Target - camera.transform.position).magnitude;
+        }
+        set
+        {
+            camera.transform.position = Target - camera.transform.forward * Height;
+        }
+    }
     public CameraMgr(Camera camera)
     {
         this.camera = camera;
