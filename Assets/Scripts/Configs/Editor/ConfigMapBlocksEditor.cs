@@ -1,26 +1,60 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(ConfigMapBlocks))]
 public class ConfigMapBlocksEditor : Editor
 {
+    private class Writer
+    {
+        public readonly List<byte> data = new List<byte>();
+        public void Write(byte value)
+        {
+            data.Add(value);
+        }
+        public void Write(int value)
+        {
+            data.AddRange(System.BitConverter.GetBytes(value));
+        }
+    }
     private int width, height;
     private void OnEnable()
     {
         var blocks = target as ConfigMapBlocks;
-        width = blocks.width;
-        height = blocks.height;
+        var path = AssetDatabase.GetAssetPath(target);
+        if (!string.IsNullOrEmpty(path) && blocks)
+        {
+            var data = AssetDatabase.LoadAssetAtPath<TextAsset>(path.Replace(".asset", ConfigMapBlocks.path_data + ".bytes"));
+            if (data) blocks.Load(data.bytes);
+            else blocks.Resize(32, 32);
+        }
+        else blocks.Resize(32, 32);
+        width = blocks.Width;
+        height = blocks.Height;
     }
     private void OnDisable()
     {
+        var blocks = target as ConfigMapBlocks;
         var path = AssetDatabase.GetAssetPath(target);
-        if (!string.IsNullOrEmpty(path))
+        if (!string.IsNullOrEmpty(path) && blocks)
         {
-            var t = Instantiate(target);
-            AssetDatabase.DeleteAsset(path);
-            AssetDatabase.CreateAsset(t, path);
-            AssetDatabase.SaveAssets();
+            var writer = new Writer();
+            writer.Write(blocks.Width);
+            writer.Write(blocks.Height);
+            for (var w = 0; w < blocks.Width; w++)
+                for (var h = 0; h < blocks.Height; h++)
+                {
+                    for (var x = 0; x < ConfigMapBlockInfo.width; x++)
+                        for (var y = 0; y < ConfigMapBlockInfo.height; y++)
+                            writer.Write(blocks[w, h].splates[x, y]);
+                    for (var x = 0; x < ConfigMapBlockInfo.width - 1; x++)
+                        for (var y = 0; y < ConfigMapBlockInfo.height - 1; y++)
+                            writer.Write(blocks[w, h].extends[x, y]);
+                }
+            path = path.Replace(".asset", ConfigMapBlocks.path_data + ".bytes");
+            path = Application.dataPath.Replace("Assets", path);
+            File.WriteAllBytes(path, writer.data.ToArray());
             AssetDatabase.Refresh();
         }
     }
@@ -53,14 +87,14 @@ public class ConfigMapBlocksEditor : Editor
                             else splat11 = splat10;
                         }
                         else splat11 = GetRandomSplate(splates, weight);
-                        block.splates[x, y] = splat11;
+                        block.splates[x, y] = (byte)splat11;
                         if (splates[splat11].extend && splat00 == splat11 && splat01 == splat11 && splat10 == splat11)
                             block.extends[x - 1, y - 1] = (byte)Random.Range(0, 16);
                     }
                     else if (sy == 0)
                     {
                         var splat = block.splates[x - 1, y];
-                        if (Random.value < splates[splat].cohesion) splat = GetRandomSplate(splates, weight);
+                        if (Random.value < splates[splat].cohesion) splat = (byte)GetRandomSplate(splates, weight);
                         block.splates[x, y] = splat;
                     }
                 }
@@ -69,10 +103,10 @@ public class ConfigMapBlocksEditor : Editor
                     if (y > 0)
                     {
                         var splat = block.splates[x, y - 1];
-                        if (Random.value < splates[splat].cohesion) splat = GetRandomSplate(splates, weight);
+                        if (Random.value < splates[splat].cohesion) splat = (byte)GetRandomSplate(splates, weight);
                         block.splates[x, y] = splat;
                     }
-                    else if (sy == 0) block.splates[x, y] = GetRandomSplate(splates, weight);
+                    else if (sy == 0) block.splates[x, y] = (byte)GetRandomSplate(splates, weight);
                 }
             }
     }

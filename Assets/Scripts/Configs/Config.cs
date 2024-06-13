@@ -89,7 +89,12 @@ public static class Config
     {
         get
         {
-            if (!mapBlocks) mapBlocks = LoadConfig<ConfigMapBlocks>(ConfigMapBlocks.path);
+            if (!mapBlocks)
+            {
+                mapBlocks = LoadConfig<ConfigMapBlocks>(ConfigMapBlocks.path);
+                var assert = LoadConfig<TextAsset>(ConfigMapBlocks.path + ConfigMapBlocks.path_data);
+                mapBlocks.Load(assert.bytes);
+            }
             return mapBlocks;
         }
     }

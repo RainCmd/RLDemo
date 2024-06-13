@@ -31,23 +31,10 @@ public class Player
     public Player(integer id)
         this.id = id
         hero = Unit('U_hero', id, FORWARD, GetRandomWorldPosition()) 
-        for var i = 0; i < 10; i++
-            start Test跟屁虫()
         for var i = 0; i < wands.GetLength(); i++
             wands[i] = Wand(0, 0, MagicNode[WAND_SLOT_SIZE])
         start PlayerMainLoop()
-    private Test跟屁虫()
-        var u = Unit('U_enemy', id, FORWARD, hero.position)
-        u.moveSpeed = GetRandomRange(.25, 1.5)
-        while
-            wait
-            u.Goto(hero.position)
-            DamageUnit(hero, u.moveSpeed, u)
-            ShowFloatText(u.position, real3(1, 0, 0), "-1")
-            
-            if u.hp < 10
-                DamageUnit(hero, -100, u)
-                
+        
     private PlayerMainLoop()
         while
             wait

@@ -32,6 +32,11 @@ public class GameEntity
     public void Update(LogicEntity entity)
     {
         UpdateTransform(entity.forward.ToVector(), entity.position.ToVector(), false);
+        if (entity.anim != anim)
+        {
+            anim = entity.anim;
+            this.entity?.PlayAnim(anim);
+        }
     }
     public void UpdateTransform(Vector3 forward, Vector3 position, bool immediately)
     {

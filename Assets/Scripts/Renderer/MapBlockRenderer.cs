@@ -137,7 +137,7 @@ public class MapBlockRenderer : IDisposable
     {
         this.mgr = mgr;
         var blocks = Config.MapBlocks;
-        this.blocks = new BlockInfo[blocks.width, blocks.height];
+        this.blocks = new BlockInfo[blocks.Width, blocks.Height];
         var splats = Config.SplatInfos;
         materials = new Material[splats.Count];
         for (int i = 0; i < splats.Count; i++)
@@ -152,12 +152,14 @@ public class MapBlockRenderer : IDisposable
     }
     public void OnRendererUpdate()
     {
-        var area = mgr.CameraArea;
         var blocks = Config.MapBlocks;
-        var minX = Mathf.Clamp((int)(area.min.x / blockWidth), 0, blocks.width - 1);
-        var maxX = Mathf.Clamp((int)(area.max.x / blockWidth), 0, blocks.width - 1);
-        var minY = Mathf.Clamp((int)(area.min.y / blockHeight), 0, blocks.height - 1);
-        var maxY = Mathf.Clamp((int)(area.max.y / blockHeight), 0, blocks.height - 1);
+        var offset = new Vector2((blocks.Width - 1) * (ConfigMapBlockInfo.width - 1), (blocks.Height - 1) * (ConfigMapBlockInfo.height - 1)) * .5f;
+        var area = mgr.CameraArea;
+        area.position += offset;
+        var minX = Mathf.Clamp(Mathf.FloorToInt(area.min.x / blockWidth), 0, blocks.Width - 1);
+        var maxX = Mathf.Clamp(Mathf.FloorToInt(area.max.x / blockWidth), 0, blocks.Width - 1);
+        var minY = Mathf.Clamp(Mathf.FloorToInt(area.min.y / blockHeight), 0, blocks.Height - 1);
+        var maxY = Mathf.Clamp(Mathf.FloorToInt(area.max.y / blockHeight), 0, blocks.Height - 1);
         if (lastMinX < minX || lastMinY < minY || lastMaxX > maxX || lastMaxY > maxY)
             for (var x = lastMinX; x <= lastMaxX; x++)
                 for (var y = lastMinY; y <= lastMaxY; y++)
@@ -173,7 +175,7 @@ public class MapBlockRenderer : IDisposable
                 if (this.blocks[x, y] == null)
                 {
                     this.blocks[x, y] = blockPool.Count > 0 ? blockPool.Pop() : new BlockInfo();
-                    this.blocks[x, y].Init(new Vector3(x * blockWidth, 0, y * blockHeight), blocks[x, y], materials);
+                    this.blocks[x, y].Init(new Vector3(x * blockWidth - offset.x, 0, y * blockHeight - offset.y), blocks[x, y], materials);
                 }
                 this.blocks[x, y].Draw();
             }
