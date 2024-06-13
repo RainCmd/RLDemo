@@ -44,6 +44,8 @@ namespace InitGame
         for var i = 0; i < ctrls.GetLength(); i++
             ctrlId2pId[ctrls[i]] = i
             players[i] = Player(i)
+        
+        start SpawnEnemy()
 
     //逻辑更新开始前
     public GameEntry()

@@ -1,0 +1,40 @@
+import kernel.Math
+space integer enemyCount = 0
+space Unit GetNearestHero(real3 position)
+    Unit result = null
+    real min
+    for var i = 0; i < players.GetLength(); i++
+        var hero = players[i].hero
+        if result == null
+            result = hero
+            min = (hero.position - position).SqrMagnitude()
+        elseif hero != null
+            var dis = (hero.position - position).SqrMagnitude()
+            if min > dis
+                min = dis
+                result = hero
+            
+    return result
+space CreateEnemy()
+    var tp = players[GetRandomInt() % players.GetLength()]
+    var p = tp.hero == null ? real3() : tp.hero.position
+    var c, var s = SinCos(GetRandomRange( -PI, PI))
+    p += real3(c, 0, s) * GetRandomRange(3, 10)
+    var u = Unit('U_enemy', PLAYER_ENEMY, FORWARD, p)
+    enemyCount++
+    while u.valid
+        var trg = GetNearestHero(u.position)
+        if trg != null
+            if(trg.position - u.position).Magnitude() <.25
+                DamageUnit(u, 10, trg)
+                ShowFloatText(trg.position, real3(1, 0, 0), "-10")
+                u.Remove(false)
+                enemyCount--
+            else
+                u.Goto(trg.position)
+        wait 5
+public SpawnEnemy()
+    while
+        wait
+        if enemyCount < 10
+            start CreateEnemy()

@@ -7,6 +7,7 @@ internal native OnPlayerMagicNodePickListChanged(integer player, integer nodeID,
 internal native OnPlayerWandChanged(integer player, integer wandId)
 
 public Player[] players
+public const integer PLAYER_ENEMY = 'ENEMY'
 
 public struct Wand 
     real cdStartTime

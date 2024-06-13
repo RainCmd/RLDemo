@@ -138,7 +138,7 @@ public Recycle(Area area)
     areaPool[areaPoolCount] = area
 
 public real GetRandomRange(real min, real max)
-    return min + GetRandomReal() * ( max - min)
+    return min + GetRandomReal() * (max - min)
 public real3 GetRandomWorldPosition()
     return real3(GetRandomRange( -WORLD_SIZE, WORLD_SIZE), 0, GetRandomRange( -WORLD_SIZE, WORLD_SIZE))
             

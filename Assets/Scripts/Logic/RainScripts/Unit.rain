@@ -9,6 +9,8 @@ internal native OnUnitBuffChanged(integer unitId, integer buffId, bool addition)
 
 public delegate real UnitDamageEvent(Unit source, real damage, Unit target)//返回修正后的伤害值
 public List AnyUnitTakesDamage = List()//<UnitDamageEvent>
+public delegate UnitDeath(Unit killer, Unit dead)
+public List AnyUnitDeath = List()//<UnitDeath>
 public DamageUnit(Unit source, real damage, Unit target)
     if target == null || !target.valid
         return
@@ -25,6 +27,7 @@ space task UnitMainLoopTask
 public class Unit GameEntity
     public bool valid = true
     public integer player
+    public integer configId
     public UnitType unitType
     public real hp
     public real maxHP
@@ -39,6 +42,7 @@ public class Unit GameEntity
         var config = GetUnitConfig(configId)
         base.Init(config.entityConfigId, "stand", forward, position)
         this.player = player
+        this.configId = configId
         unitType = config.unitType
         hp = maxHP = config.hp
         mp = maxMP = config.mp
@@ -91,6 +95,9 @@ public class Unit GameEntity
         if shp != hp
             OnUpdate()
         if hp == 0
+            for var i, var c = 0, AnyUnitDeath.Count(); i < c; i++
+                var e = UnitDeath & AnyUnitDeath.Get(i)
+                e(source, this)
             Remove(false)
         return damage
     public Goto(real3 target)
