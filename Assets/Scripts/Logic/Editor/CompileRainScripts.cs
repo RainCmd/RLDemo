@@ -84,11 +84,6 @@ public class CompileRainScripts
     {
         var path = msg.Path;
         var file = files.Find(v => v.Path == path);
-        if (file == null)
-        {
-            Debug.LogError($"path:{path} 没找到？");
-            return;
-        }
         var assetPath = scriptsPath.Replace(dataPath, "Assets") + path;
         var detail = msg.Detail;
         var fidx = path.LastIndexOfAny(new char[] { '\\', '/' });

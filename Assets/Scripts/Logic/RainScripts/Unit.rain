@@ -38,6 +38,7 @@ public class Unit GameEntity
     public real3 targetPosition
     public List buffs = List()//<Buff>
     public List onHitEvent = List()//<HitEvent>
+    private real2 pressure
     public Unit(integer configId, integer player, real3 forward, real3 position)
         var config = GetUnitConfig(configId)
         base.Init(config.entityConfigId, "stand", forward, position)
@@ -62,8 +63,8 @@ public class Unit GameEntity
 
     private MainLoop()
         while valid
-            wait
             UpdateAutoMove()
+            wait
 
     public AddBuff(integer buffId, Unit source)
         if !valid
@@ -121,17 +122,28 @@ public class Unit GameEntity
             return
         autoMoving = false
         ShowAnim(UNIT_ANIM_IDLE)
+    private OnSelectEntity(GameEntity e)
+        if e != this and e is Unit u
+            pressure += position.xz - u.position.xz
     private UpdateAutoMove()
+        pressure = real2()
+        worldRoot.SelectRange(position.xz, 1, OnSelectEntity)
+        var dir = pressure.Normalized() * Clamp01(pressure.SqrMagnitude())// * moveSpeed
         if autoMoving
             var forward = targetPosition - position
-            var sqrDis = forward.SqrMagnitude()
-            forward = forward.Normalized()
-            var step = moveSpeed * LOGIC_TIMESTEP
-            if sqrDis < step * step
-                Move(forward, targetPosition)
-                ShowAnim(UNIT_ANIM_IDLE)
-                autoMoving = false
-            else
-                Move(forward, position + forward * step)
+            StepMove(forward + real3(dir.x, 0, dir.y))
+        elseif dir.SqrMagnitude() > 0
+            StepMove(real3(dir.x, 0, dir.y))
+    private StepMove(real3 forward)
+        var target = position + forward
+        var sqrDis = forward.SqrMagnitude()
+        forward = forward.Normalized()
+        var step = moveSpeed * LOGIC_TIMESTEP
+        if sqrDis < step * step
+            Move(forward, target)
+            ShowAnim(UNIT_ANIM_IDLE)
+            autoMoving = false
+        else
+            Move(forward, position + forward * step)
     public OnUpdate()
         OnUpdateUnitEntity(GetHandleID(), player, unitType, hp, maxHP, mp, maxMP)

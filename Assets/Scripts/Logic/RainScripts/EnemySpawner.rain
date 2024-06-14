@@ -25,14 +25,14 @@ space CreateEnemy()
     while u.valid
         var trg = GetNearestHero(u.position)
         if trg != null
-            if(trg.position - u.position).Magnitude() <.25
+            if(trg.position - u.position).Magnitude() <.25 and false
                 DamageUnit(u, 10, trg)
                 ShowFloatText(trg.position, real3(1, 0, 0), "-10")
                 u.Remove(false)
                 enemyCount--
             else
                 u.Goto(trg.position)
-        wait 5
+        Wait(1)
 public SpawnEnemy()
     while
         wait

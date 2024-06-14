@@ -117,7 +117,7 @@ public class Area
         else
             Remove(value)
             value.position.xz = position
-            Add(value)
+            worldRoot->Add(value)
 
 public Area[] areaPool = Area[16]
 public integer areaPoolCount = 0
@@ -140,7 +140,7 @@ public Recycle(Area area)
 public real GetRandomRange(real min, real max)
     return min + GetRandomReal() * (max - min)
 public real3 GetRandomWorldPosition()
-    return real3(GetRandomRange( -WORLD_SIZE, WORLD_SIZE), 0, GetRandomRange( -WORLD_SIZE, WORLD_SIZE))
+    return real3(GetRandomRange( -WORLD_SIZE, WORLD_SIZE), 0, GetRandomRange( -WORLD_SIZE, WORLD_SIZE))/100
             
 public real gameTime = 0
 public StartWorld()
