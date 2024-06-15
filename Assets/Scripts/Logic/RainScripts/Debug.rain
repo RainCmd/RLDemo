@@ -1,0 +1,6 @@
+
+internal native Debug(string)
+internal native ClearLines()
+internal native DrwaLine(real3 s, real3 e, real4 color)
+internal DrwaLine(real3 s, real3 e)
+    DrwaLine(s, e, real4(1, 1, 1, .5))

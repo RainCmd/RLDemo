@@ -45,6 +45,7 @@ public class GameMgr : MonoBehaviour
     }
     private void Update()
     {
+        Logic?.ShowDebugLine();
         if (Room == null) return;
         if (entryGame)
         {

@@ -16,7 +16,8 @@ public GameEntity[], integer Add(GameEntity[] values, integer count, GameEntity 
 public GameEntity[], integer RemoveSwap(GameEntity[] values, integer count, GameEntity value)
     for var i = 0; i < count; i++
         if values[i] == value
-            values[i] = values[--count]
+            values[i] = values[ --count]
+            values[count] = null
             break
     return values, count
 
@@ -46,7 +47,7 @@ public class GameEntity
         this->OnUpdate()
     public Remove(bool immediately)
         OnRemoveEntity(GetHandleID(), immediately)
-        worldRoot.Remove(this)
+        area->Remove(this)
     public Move(real3 position)
         this->Move(forward, position)
     public Move(real3 forward, real3 position)

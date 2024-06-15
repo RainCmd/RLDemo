@@ -1,5 +1,4 @@
 import GameConfig
-internal native Debug(string)
 internal native ShowFloatText(real3 position, real3 color, string value)
 namespace InitGame
     

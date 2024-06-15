@@ -190,6 +190,42 @@ public class LogicWorld : IDisposable
         }
     }
     #region NativeFunctions
+    private struct Line
+    {
+        private Vector3 start, end;
+        private Color color;
+
+        public Line(Vector3 start, Vector3 end, Color color)
+        {
+            this.start = start;
+            this.end = end;
+            this.color = color;
+        }
+        public void Draw()
+        {
+            UnityEngine.Debug.DrawLine(start, end, color);
+        }
+    }
+    private List<Line> lines = new List<Line>();
+    [RainMethod("ClearLines")]
+    private void ClearLines()
+    {
+        lock (lines)
+            lines.Clear();
+    }
+    [RainMethod("DrwaLine")]
+    private void DrawLine(Real3 start, Real3 end, Real4 color)
+    {
+        lock (lines)
+            lines.Add(new Line(start.ToVector(), end.ToVector(), new Color((float)color.x, (float)color.y, (float)color.z, (float)color.z)));
+    }
+    public void ShowDebugLine()
+    {
+        lock (lines)
+            foreach (var line in lines)
+                line.Draw();
+    }
+
     [RainMethod("Debug")]
     private void Debug(string msg)
     {
