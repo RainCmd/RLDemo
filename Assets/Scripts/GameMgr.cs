@@ -82,10 +82,10 @@ public class GameMgr : MonoBehaviour
     {
         if (Room == null) return -1;
         var info = Room.Info;
-        if (info.owner.id == id) return Logic.GetPlayerId(info.ctrlId);
+        if (info.owner.id == id) return info.ctrlId;
         foreach (var item in info.members)
             if (item.player.id == id)
-                return Logic.GetPlayerId(item.ctrlId);
+                return item.ctrlId;
         return -1;
     }
     public bool TryGetPlayer(long playerId, out PlayerInfo info)
@@ -93,14 +93,13 @@ public class GameMgr : MonoBehaviour
         if (Room != null)
         {
             var roomInfo = Room.Info;
-            var ctrl = Logic.GetCtrlId(playerId);
-            if (roomInfo.ctrlId == ctrl)
+            if (roomInfo.ctrlId == playerId)
             {
                 info = roomInfo.owner;
                 return true;
             }
             foreach (var item in roomInfo.members)
-                if (item.ctrlId == ctrl)
+                if (item.ctrlId == playerId)
                 {
                     info = item.player;
                     return true;

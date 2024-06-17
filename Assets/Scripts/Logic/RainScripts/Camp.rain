@@ -1,0 +1,16 @@
+
+public class Camp 
+    private integer mask 
+    private integer camp
+    public Camp(integer playerId)
+        mask = 1 << playerId
+        camp |= mask
+    public Ally(Camp camp)
+        this.camp |= camp.mask
+        camp.camp |= mask
+    public Enemy(Camp camp)
+        this.camp &=~camp.mask
+        camp.camp &=~mask
+    public bool IsAlly(Camp other)
+        return camp & other.mask != 0
+        

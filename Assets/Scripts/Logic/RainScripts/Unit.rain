@@ -23,10 +23,9 @@ public const string UNIT_ANIM_IDLE = "idle"
 public const string UNIT_ANIM_MOVE = "move"
 public const string UNIT_ANIM_DEATH = "death"
 public delegate real HitEvent(Unit source, real damage)//返回修正后的伤害值
-space task UnitMainLoopTask
 public class Unit GameEntity
     public bool valid = true
-    public integer player
+    public Player player
     public integer configId
     public UnitType unitType
     public real hp
@@ -39,7 +38,7 @@ public class Unit GameEntity
     public List buffs = List()//<Buff>
     public List onHitEvent = List()//<HitEvent>
     private real2 pressure
-    public Unit(integer configId, integer player, real3 forward, real3 position)
+    public Unit(integer configId, Player player, real3 forward, real3 position)
         var config = GetUnitConfig(configId)
         base.Init(config.entityConfigId, "stand", forward, position)
         this.player = player
@@ -146,4 +145,4 @@ public class Unit GameEntity
         else
             Move(forward, position + forward * step)
     public OnUpdate()
-        OnUpdateUnitEntity(GetHandleID(), player, unitType, hp, maxHP, mp, maxMP)
+        OnUpdateUnitEntity(GetHandleID(), player.id, unitType, hp, maxHP, mp, maxMP)

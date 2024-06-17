@@ -155,17 +155,15 @@ public class RainMethodAttribute : Attribute
 }
 public class LogicWorld : IDisposable
 {
-    public readonly long[] ctrlIds;
     private readonly Queue<IDisposable> disposables = new Queue<IDisposable>();
     private Kernel kernel;
     private Function[] operFuncs;
     public event Action<L2RData> OnRendererMsg;
 
     public event Action<LogicFloatTextMsg> OnFloatTextMsg;
-    public LogicWorld(long[] ctrlIds, long seed, LoadingProgress loading)
+    public LogicWorld(long[] ctrls, long seed, LoadingProgress loading)
     {
         RegistFunctions();
-        this.ctrlIds = ctrlIds;
         var lib = RainLib.Create(LoadLibrary("RLDemo")) ?? throw new NullReferenceException("逻辑世界lib加载失败");
         var libs = new RainLib[] { lib };
         var parameter = new StartupParameter(libs, seed, 0xff, 0xff,
@@ -174,7 +172,10 @@ public class LogicWorld : IDisposable
         kernel = RainLanguageAdapter.CreateKernel(parameter, LoadProgramDatabase);
         using (var init = kernel.FindFunction("GameMain"))
         using (var invoker = init.CreateInvoker())
+        {
+            invoker.SetIntegerParameters(0, ctrls);
             invoker.Start(true, false);
+        }
         InitOperFuncs();
         loading.Progress = 1;
     }
@@ -233,11 +234,7 @@ public class LogicWorld : IDisposable
         UnityEngine.Debug.Log("<color=#00ffcc>雨言Debug</color>:{0}".Format(msg));
     }
 
-    [RainMethod("InitGame.GetControls")]
-    private long[] GetCtrls()
-    {
-        return ctrlIds;
-    }
+
     [RainMethod("GameConfig.ConfigMagicNode_GetConfigCount")]
     private long Config_GetMagicNodeCount()
     {
@@ -447,17 +444,6 @@ public class LogicWorld : IDisposable
         return initResult;
     }
     #endregion
-    public long GetPlayerId(long ctrlId)
-    {
-        for (var i = 0; i < ctrlIds.Length; i++)
-            if (ctrlIds[i] == ctrlId)
-                return i;
-        return -1;
-    }
-    public long GetCtrlId(long playerId)
-    {
-        return ctrlIds[playerId];
-    }
     private void InitOperFuncs()
     {
         operFuncs = new Function[typeof(OperatorType).GetEnumValues().Length];

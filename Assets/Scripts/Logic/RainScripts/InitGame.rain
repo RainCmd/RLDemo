@@ -1,49 +1,35 @@
 import GameConfig
 internal native ShowFloatText(real3 position, real3 color, string value)
 namespace InitGame
-    
-    space integer[] ctrlId2pId
-
     public OperRocker(integer ctrlId, real dir, real dis)
-        players[ctrlId2pId[ctrlId]].OnRocker(dir, dis)
+        players[ctrlId].OnRocker(dir, dis)
 
     public OperFire(integer ctrlId, real dir)
-        players[ctrlId2pId[ctrlId]].OnFire(dir)
+        players[ctrlId].OnFire(dir)
 
     public OperStopFire(integer ctrlId)
-        players[ctrlId2pId[ctrlId]].OnStopFire()
+        players[ctrlId].OnStopFire()
 
     public OperSwitchWeapon(integer ctrlId, integer weapon)
-        players[ctrlId2pId[ctrlId]].OnSwitchWeapon(weapon)
+        players[ctrlId].OnSwitchWeapon(weapon)
 
     public OperPick(integer ctrlId, integer trg)
-        players[ctrlId2pId[ctrlId]].OnPick(trg)
+        players[ctrlId].OnPick(trg)
 
     public OperDrop(integer ctrlId, integer trg)
-        players[ctrlId2pId[ctrlId]].OnDrop(trg)
+        players[ctrlId].OnDrop(trg)
 
     public OperEquip(integer ctrlId, integer trg, integer weapon, integer slot)
-        players[ctrlId2pId[ctrlId]].OnEquip(trg, weapon, slot)
+        players[ctrlId].OnEquip(trg, weapon, slot)
     
-    space native integer[] GetControls()
     //逻辑世界初始化
-    public GameMain()
+    public GameMain(integer[] ctrls)
         LoadMagicNodeConfig()
         LoadEntityConfig()
         LoadUnitConfig()
         LoadBuffConfig()
+        InitPlayers(ctrls)
 
-        var ctrls = GetControls()
-        var maxCtrlId = 0
-        for var i = 0; i < ctrls.GetLength(); i++
-            if ctrls[i] > maxCtrlId
-                maxCtrlId = ctrls[i]
-        ctrlId2pId = integer[maxCtrlId + 1]
-        players = Player[ctrls.GetLength()]
-        for var i = 0; i < ctrls.GetLength(); i++
-            ctrlId2pId[ctrls[i]] = i
-            players[i] = Player(i)
-        
         start SpawnEnemy()
 
     //逻辑更新开始前
@@ -57,7 +43,7 @@ namespace InitGame
     space OnLoadEntity(GameEntity e)
         OnLoadGameEntity(e.GetHandleID(), e.resource, e.anim, e.forward, e.position)
         if e is Unit u
-            OnLoadGameUnit(u.GetHandleID(), u.player, u.unitType, u.hp, u.maxHP, u.mp, u.maxMP)
+            OnLoadGameUnit(u.GetHandleID(), u.player.id, u.unitType, u.hp, u.maxHP, u.mp, u.maxMP)
             for var i = 0; i < u.buffs.Count(); i++
                 var b = Buff& u.buffs.Get(i)
                 OnLoadBuff(u.GetHandleID(), b.GetHandleID(), b.config.id, b.number, b.startTime, b.endTime)
@@ -81,7 +67,7 @@ namespace InitGame
                     OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
 
     public Init_SetPlayerName(integer ctrlId, string name)
-        players[ctrlId2pId[ctrlId]].name = name
+        players[ctrlId].name = name
     public integer Init_GetPlayerCount()
         return players.GetLength()
     public string, integer, integer, integer[], integer[] Init_GetPlayer(integer id)//玩家名, 玩家英雄id, 当前法杖, 背包列表, 拾取列表

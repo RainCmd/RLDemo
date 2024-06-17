@@ -17,20 +17,8 @@ public GameEntity[], integer RemoveSwap(GameEntity[] values, integer count, Game
     for var i = 0; i < count; i++
         if values[i] == value
             values[i] = values[ --count]
-            values[count] = null
             break
     return values, count
-
-public GameEntity[], integer Remove(GameEntity[] values, integer count, GameEntity value)
-    for var i = 0; i < count; i++
-        if values[i] == value
-            return RemoveAt(values, count, i)
-    return values, count
-
-public GameEntity[], integer RemoveAt(GameEntity[] values, integer count, integer index)
-    while index++ < count
-        values[index - 1] = values[index]
-    return values, count - 1
 
 public class GameEntity
     public Area area

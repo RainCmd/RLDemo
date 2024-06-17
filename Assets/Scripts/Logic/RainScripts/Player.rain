@@ -6,8 +6,14 @@ internal native OnPlayerWandCDUpdate(integer player, integer wand, real startTim
 internal native OnPlayerMagicNodePickListChanged(integer player, integer nodeID, bool addition)
 internal native OnPlayerWandChanged(integer player, integer wandId)
 
-public Player[] players
-public const integer PLAYER_ENEMY = 'ENEMY'
+public Player[] players = Player[64]
+public Player monsterPlayer
+public InitPlayers(integer[] ctrls)
+    for var i = 0; i < 64; i++
+        players[i] = Player(i)
+    monsterPlayer = players[63]
+    for var i = 0; i < ctrls.GetLength(); i++
+        players[ctrls[i]].EnableCtrl()
 
 public struct Wand 
     real cdStartTime
@@ -18,6 +24,7 @@ public struct Wand
         
 public class Player
     public integer id
+    public Camp camp
     public string name
     public Unit hero
     public List bagMagicNodes = List()//<MagicNode>
@@ -31,11 +38,13 @@ public class Player
     private real rockDis
     public Player(integer id)
         this.id = id
-        hero = Unit('U_hero', id, FORWARD, GetRandomWorldPosition()) 
+        camp = Camp(id)
         for var i = 0; i < wands.GetLength(); i++
             wands[i] = Wand(0, 0, MagicNode[WAND_SLOT_SIZE])
-        start PlayerMainLoop()
         
+    public EnableCtrl()
+        hero = Unit('U_hero', this, FORWARD, GetRandomWorldPosition()) 
+        start PlayerMainLoop()
     private PlayerMainLoop()
         while
             wait
@@ -45,7 +54,7 @@ public class Player
     public PickMagicNode(MagicNode node)
         if node.nodeEntity != null
             if (node.nodeEntity.position - hero.position).xz.SqrMagnitude() < PICK_RANGE * PICK_RANGE
-                node.OnPick()
+                node.OnPick(this)
                 bagMagicNodes.Add(node)
                 OnPlayerBagMagicNodeChanged(id, node.GetHandleID(), true)
     private MagicNode RemoveBagMagicNode(integer id)

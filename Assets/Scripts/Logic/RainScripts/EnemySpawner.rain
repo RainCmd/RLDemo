@@ -20,7 +20,7 @@ space CreateEnemy()
     var p = tp.hero == null ? real3() : tp.hero.position
     var c, var s = SinCos(GetRandomRange( -PI, PI))
     p += real3(c, 0, s) * GetRandomRange(3, 10)
-    var u = Unit('U_enemy', PLAYER_ENEMY, FORWARD, p)
+    var u = Unit('U_enemy', monsterPlayer, FORWARD, p)
     enemyCount++
     while u.valid
         var trg = GetNearestHero(u.position)
@@ -33,7 +33,15 @@ space CreateEnemy()
             else
                 u.Goto(trg.position)
         Wait(1)
+
+space RemoveMagicNode(MagicNode node, real time)
+space OnUnitDead(Unit killer, Unit dead)
+    if dead.configId == 'U_enemy'
+        var cfgs = GameConfig.entityConfigs
+        var cfg = cfgs[GetRandomInt() % cfgs.GetLength()]
+        
 public SpawnEnemy()
+    AnyUnitDeath.Add(UnitDeath & OnUnitDead)
     while
         wait
         if enemyCount < 10

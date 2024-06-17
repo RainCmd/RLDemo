@@ -4,15 +4,24 @@ import Collections
 internal native OnUpdateMagicNode(integer nodeId, integer configId, integer number)
 internal native OnRemvoeMagicNode(integer id)
 public delegate bool MatchMagicNode(MagicNode)
-
+public delegate OnPickNode(Player picker, MagicNode node)
+public List onMagicNodePick = List()//<OnPickNode>
 public class MagicNodeEntity GameEntity
     public MagicNode node
+    public MagicNodeEntity(MagicNode node, real3 position)
+        this.node = node
+        Init(node.config.entityConfigId, "stand", FORWARD, position)
+    public Remove(bool immediately)
+        if !immediately
+            ShowAnim("kill")
+        node = null
+        base.Remove(immediately)
 
 public class MagicNode
     public MagicNodeEntity nodeEntity
     public MagicNodeConfig config
     public integer number
-    public Init(integer configId, real3 position)
+    public MagicNode(integer configId, real3 position)
         nodeEntity = null
         config = GetMagicNodeConfig(configId)
         number = config.number
@@ -20,29 +29,19 @@ public class MagicNode
         OnDrop(position)
     public Remove()
         OnRemvoeMagicNode(GetHandleID())
-        OnPick()
-        magicNodePool.Add(this)
+        nodeEntity?->Remove(false)
+        nodeEntity = null
     public OnDrop(real3 position)
         if nodeEntity == null
-            nodeEntity = magicNodeEntityPool.Count() > 0 ? MagicNodeEntity& magicNodeEntityPool.Pop() : MagicNodeEntity()
-            nodeEntity.node = this
-            nodeEntity.Init(config.entityConfigId, "stand", FORWARD, position)
+            nodeEntity = MagicNodeEntity(this, position)
         else
             nodeEntity.Move(position)
-    public OnPick()
-        if nodeEntity != null
-            nodeEntity.ShowAnim("kill")
-            nodeEntity.Remove(false)
-            nodeEntity.node = null
-            magicNodeEntityPool.Add(nodeEntity)
-            nodeEntity = null
+    public OnPick(Player picker)
+        for var i = 0; i < onMagicNodePick.Count(); i++
+            var onPick = OnPickNode & onMagicNodePick.Get(i)
+            onPick(picker, this)
+        nodeEntity?->Remove(false)
+        nodeEntity = null
+        
     public OnUpdate()
         OnUpdateMagicNode(GetHandleID(), config.id, number)
-
-public MagicNode CreateMagicNode(integer configId, real3 position)
-    var node = magicNodeEntityPool.Count() > 0 ? MagicNode& magicNodePool.Pop() : MagicNode()
-    node.Init(configId, position)
-    return node
-
-space List magicNodeEntityPool = List()//<MagicNodeEntity>
-space List magicNodePool = List()//<MagicNode>

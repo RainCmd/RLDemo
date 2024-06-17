@@ -85,11 +85,19 @@ public class GameUnit
     public GameUnit(GameEntity entity, LogicUnitEntity unit)
     {
         this.entity = entity;
-        Update(unit);
+        UnitType = unit.type;
+        owner = unit.player;
+        life = new GameUnitState((float)unit.hp, (float)unit.maxHP);
+        mana = new GameUnitState((float)unit.mp, (float)unit.maxMP);
     }
     public void Update(LogicUnitEntity unit)
     {
         UnitType = unit.type;
+        if (owner != unit.player)
+        {
+            owner = unit.player;
+            OnOwnerChanged?.Invoke();
+        }
         Life = new GameUnitState((float)unit.hp, (float)unit.maxHP);
         Mana = new GameUnitState((float)unit.mp, (float)unit.maxMP);
         OnUpdate?.Invoke();
