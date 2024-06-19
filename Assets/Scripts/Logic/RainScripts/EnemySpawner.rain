@@ -15,9 +15,20 @@ space Unit GetNearestHero(real3 position)
                 result = hero
             
     return result
+private Unit[] GetHeros()
+    var cnt = 0; 
+    for var i = 0; i < players.GetLength(); i++
+        if players[i].hero != null
+            cnt++
+    var result = Unit[cnt]
+    for var i = 0; i < players.GetLength(); i++
+        if players[i].hero != null
+            result[--cnt] = players[i].hero
+    return result
+
 space CreateEnemy()
-    var tp = players[GetRandomInt() % players.GetLength()]
-    var p = tp.hero == null ? real3() : tp.hero.position
+    var heros = GetHeros()
+    var p = heros[GetRandomInt() % heros.GetLength()].position
     var c, var s = SinCos(GetRandomRange( -PI, PI))
     p += real3(c, 0, s) * GetRandomRange(3, 10)
     var u = Unit('U_enemy', monsterPlayer, FORWARD, p)
@@ -34,12 +45,28 @@ space CreateEnemy()
                 u.Goto(trg.position)
         Wait(1)
 
-space RemoveMagicNode(MagicNode node, real time)
+private task RemoveDropedMagicNode
+private class DropedMagicNode
+    private MagicNode node
+    private RemoveDropedMagicNode removeTask
+    public DropedMagicNode(MagicNode node)
+        this.node = node
+        onMagicNodePick.Add(global OnPickNode & OnPickNode)
+        removeTask = start RemoveMagicNode()
+    private OnPickNode(Player picker, MagicNode node)
+        if node == this.node
+            removeTask.Abort()
+    private RemoveMagicNode()
+        Wait(10)
+        node.Remove()
+
 space OnUnitDead(Unit killer, Unit dead)
     if dead.configId == 'U_enemy'
         var cfgs = GameConfig.entityConfigs
         var cfg = cfgs[GetRandomInt() % cfgs.GetLength()]
-        
+        var node = MagicNode(cfg.id, dead.position)
+        DropedMagicNode(node)
+
 public SpawnEnemy()
     AnyUnitDeath.Add(UnitDeath & OnUnitDead)
     while

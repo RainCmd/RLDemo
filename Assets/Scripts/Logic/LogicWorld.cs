@@ -470,7 +470,6 @@ public class LogicWorld : IDisposable
     private readonly Dictionary<string, RainLanguageAdapter.RainProgramDatabase> databaseMap = new Dictionary<string, RainLanguageAdapter.RainProgramDatabase>();
     private void OnExceptionExit(Kernel kernel, RainStackFrame[] frames, string msg)
     {
-        if (msg == "虚拟机被关闭") return;
         GameLog.Show(Color.red, msg);
         msg = string.Format("<color=#ff0000>{0}</color>", msg);
         foreach (var frame in frames)

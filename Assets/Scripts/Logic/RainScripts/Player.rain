@@ -44,12 +44,14 @@ public class Player
         
     public EnableCtrl()
         hero = Unit('U_hero', this, FORWARD, GetRandomWorldPosition()) 
+        MagicNode('fireball', hero.position)
         start PlayerMainLoop()
     private PlayerMainLoop()
         while
             wait
             FireLoop()
             MoveLoop()
+            UpdatePickList()
 
     public PickMagicNode(MagicNode node)
         if node.nodeEntity != null
