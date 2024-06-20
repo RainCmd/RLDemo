@@ -11,14 +11,14 @@ public class ActivityGameMainPickListItem : MonoBehaviour
     private Text num;
     [SerializeField]
     private Text nameText;
-    private long nodeId;
+    private LogicMagicNodeEntity entity;
     private GameMgr mgr;
-    public void Init(GameMgr mgr, long nodeId)
+    public void Init(GameMgr mgr, LogicMagicNodeEntity entity)
     {
         this.mgr = mgr;
-        this.nodeId = nodeId;
+        this.entity = entity;
         foreach (var node in LogicConfig.magicNodes)
-            if (nodeId == node.id)
+            if (entity.configId == node.id)
             {
                 icon.sprite = Config.NodeIconList[(int)node.icon];
                 type.sprite = Config.MagicNodeTypeIcons[(int)node.type];
@@ -31,6 +31,6 @@ public class ActivityGameMainPickListItem : MonoBehaviour
     }
     public void OnClick()
     {
-        mgr.Room.UpdateOperator(Operator.Pick(nodeId));
+        mgr.Room.UpdateOperator(Operator.Pick(entity.id));
     }
 }

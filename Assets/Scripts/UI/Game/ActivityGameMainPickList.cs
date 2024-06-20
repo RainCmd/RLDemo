@@ -5,6 +5,8 @@ public class ActivityGameMainPickList : MonoBehaviour
 {
     [SerializeField]
     private GameObject prefab;
+    [SerializeField]
+    private Transform content;
     private List<ActivityGameMainPickListItem> list = new List<ActivityGameMainPickListItem>();
     private Stack<ActivityGameMainPickListItem> pool = new Stack<ActivityGameMainPickListItem>();
     private GameMgr gameMgr;
@@ -42,15 +44,21 @@ public class ActivityGameMainPickList : MonoBehaviour
             else
             {
                 var go = Instantiate(prefab);
+                go.transform.SetParent(content);
+                go.transform.localScale = Vector3.one;
                 list.Add(go.GetComponent<ActivityGameMainPickListItem>());
             }
         }
         var idx = 0;
-        foreach (var item in localPlayerData.pickList)
+        foreach (var nodeId in localPlayerData.pickList)
         {
-            list[idx].gameObject.SetActive(true);
-            list[idx].Init(gameMgr, item);
-            list[idx].transform.SetAsLastSibling();
+            if(gameMgr.Renderer.magicNodes.TryGetValue(nodeId,out var entity))
+            {
+                list[idx].gameObject.SetActive(true);
+                list[idx].Init(gameMgr, entity);
+                list[idx].transform.SetAsLastSibling();
+            }
+            else list[idx].gameObject.SetActive(false);
             idx++;
         }
     }

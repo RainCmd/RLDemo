@@ -30,7 +30,7 @@ public class Player
     public List bagMagicNodes = List()//<MagicNode>
     public Wand[] wands = Wand[3]
     public integer currentWand = 0
-    public List pickList = List()//<MagicNodeEntity>
+    public List pickList = List()//<MagicNode>
     private List selectPickList = List()//<MagicNodeEntity>
     private bool fire = false
     private real fireDir
@@ -84,16 +84,16 @@ public class Player
         selectPickList.Clear()
         worldRoot.SelectRange(hero.position.xz, PICK_RANGE, OnUpdatePickListCallback)
         for var i = 0; i < pickList.Count(); i++
-            var idx = selectPickList.FindIndex(pickList.Get(i))
+            var idx = selectPickList.FindIndex((MagicNode& pickList.Get(i)).nodeEntity)
             if idx < 0
-                var mne = MagicNodeEntity& pickList.RemoveAt(i)
-                OnPlayerMagicNodePickListChanged(id, mne.node.GetHandleID(), false)
+                var node = MagicNode& pickList.RemoveAt(i)
+                OnPlayerMagicNodePickListChanged(id, node.GetHandleID(), false)
             else
                 selectPickList.FastRemove(idx)
         for var i = 0; i < selectPickList.Count(); i++
             var mne = MagicNodeEntity& selectPickList.Get(i)
             OnPlayerMagicNodePickListChanged(id, mne.node.GetHandleID(), true)
-            pickList.Add(mne)
+            pickList.Add(mne.node)
     private FireLoop()
         if fire && wands[currentWand].cdEndTime < gameTime
             var magic = wands[currentWand].CreateMagic()
@@ -148,11 +148,10 @@ public class Player
     public OnPick(integer trg)
         //捡起地上的装备
         UpdatePickList()
-        for var i = 0; i < pickList.Count(); i++
-            var mne = MagicNodeEntity& pickList.Get(i)
-            if mne.node.GetHandleID() == trg
-                PickMagicNode(mne.node)
-                return
+        var node = pickList.Find(item => item.GetHandleID() == trg)
+        if node != null
+            PickMagicNode(MagicNode & node)
+            return
         //把法杖中装备丢进背包
         for var weapon, var c = 0, wands.GetLength(); weapon < c; weapon++
             var wand = wands[weapon]

@@ -45,31 +45,16 @@ space CreateEnemy()
                 u.Goto(trg.position)
         Wait(1)
 
-private task RemoveDropedMagicNode
-private class DropedMagicNode
-    private MagicNode node
-    private RemoveDropedMagicNode removeTask
-    public DropedMagicNode(MagicNode node)
-        this.node = node
-        onMagicNodePick.Add(global OnPickNode & OnPickNode)
-        removeTask = start RemoveMagicNode()
-    private OnPickNode(Player picker, MagicNode node)
-        if node == this.node
-            removeTask.Abort()
-    private RemoveMagicNode()
-        Wait(10)
-        node.Remove()
-
 space OnUnitDead(Unit killer, Unit dead)
     if dead.configId == 'U_enemy'
         var cfgs = GameConfig.entityConfigs
         var cfg = cfgs[GetRandomInt() % cfgs.GetLength()]
-        var node = MagicNode(cfg.id, dead.position)
-        DropedMagicNode(node)
+        MagicNode(cfg.id, dead.position)
 
 public SpawnEnemy()
     AnyUnitDeath.Add(UnitDeath & OnUnitDead)
     while
         wait
         if enemyCount < 10
-            start CreateEnemy()
+            //start CreateEnemy()
+            var i=120

@@ -6,16 +6,25 @@ internal native OnRemvoeMagicNode(integer id)
 public delegate bool MatchMagicNode(MagicNode)
 public delegate OnPickNode(Player picker, MagicNode node)
 public List onMagicNodePick = List()//<OnPickNode>
+private task DelayRemoveMaigcNodeTask
 public class MagicNodeEntity GameEntity
     public MagicNode node
+    private DelayRemoveMaigcNodeTask delayRemove
     public MagicNodeEntity(MagicNode node, real3 position)
         this.node = node
         Init(node.config.entityConfigId, "stand", FORWARD, position)
+        delayRemove = start DelayRemove()
     public Remove(bool immediately)
         if !immediately
             ShowAnim("kill")
         node = null
+        delayRemove?.Abort()
+        delayRemove = null
         base.Remove(immediately)
+    private DelayRemove()
+        Wait(1000)
+        delayRemove = null
+        node?->Remove()
 
 public class MagicNode
     public MagicNodeEntity nodeEntity
@@ -31,6 +40,10 @@ public class MagicNode
         OnRemvoeMagicNode(GetHandleID())
         nodeEntity?->Remove(false)
         nodeEntity = null
+    private DelayRemove()
+        Wait(10)
+        Remove()
+
     public OnDrop(real3 position)
         if nodeEntity == null
             nodeEntity = MagicNodeEntity(this, position)

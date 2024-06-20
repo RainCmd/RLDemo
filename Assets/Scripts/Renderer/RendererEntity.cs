@@ -106,7 +106,7 @@ public abstract class RendererEntity : MonoBehaviour
     /// <summary>
     /// 表示生命周期不再受逻辑控制，自行决定回收时机
     /// </summary>
-    public virtual void Kill() 
+    public virtual void Kill()
     {
         manager.Recycle(this);
     }

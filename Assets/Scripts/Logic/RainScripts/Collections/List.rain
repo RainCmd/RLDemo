@@ -7,6 +7,7 @@ namespace Collections
     public List -(List list, handle value)
         list.Remove(value)
         return list
+    public delegate bool Predicate(handle)
     public class List 
         private handle[] values = null
         private integer count = 0
@@ -87,6 +88,12 @@ namespace Collections
                 if values[i] == value
                     return i
             return -1
+
+        public handle Find(Predicate match)
+            for var i = 0; i < count; i++
+                if match(values[i])
+                    return values[i]
+            return null
 
         public List Clone()
             var result = List()

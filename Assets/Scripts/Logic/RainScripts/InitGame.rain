@@ -47,6 +47,8 @@ namespace InitGame
             for var i = 0; i < u.buffs.Count(); i++
                 var b = Buff& u.buffs.Get(i)
                 OnLoadBuff(u.GetHandleID(), b.GetHandleID(), b.config.id, b.number, b.startTime, b.endTime)
+        elseif e is MagicNodeEntity mne 
+            OnLoadMagicNode(mne.node.GetHandleID(), mne.node.config.id, mne.node.number)
 
     public LoadGameData()
         worldRoot.SelectAll(OnLoadEntity)
@@ -61,10 +63,6 @@ namespace InitGame
                     var node = wand.magicNodes[i]
                     if node != null
                         OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
-            for var i = 0; i < player.pickList.Count(); i++
-                var node = (MagicNodeEntity& player.pickList.Get(i)).node
-                if node.number != 0
-                    OnLoadMagicNode(node.GetHandleID(), node.config.id, node.number)
 
     public Init_SetPlayerName(integer ctrlId, string name)
         players[ctrlId].name = name
@@ -77,7 +75,7 @@ namespace InitGame
             bag[i] = player.bagMagicNodes.Get(i).GetHandleID()
         var pick = integer[player.pickList.Count()]
         for var i = 0; i < player.pickList.Count(); i++
-            pick[i] = (MagicNodeEntity&  player.pickList.Get(i)).node.GetHandleID()
+            pick[i] = player.pickList.Get(i).GetHandleID()
         return player.name, player.hero?.GetHandleID(), player.currentWand, bag, pick
     public real, real, integer[] Init_GetPlayerWand(integer playerId, integer wand)//法杖cdStart,法杖cdEnd,法杖法术
         var wand = players[playerId].wands[wand]
