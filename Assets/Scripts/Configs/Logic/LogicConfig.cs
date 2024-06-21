@@ -42,6 +42,17 @@ public static class LogicConfig
     {
         return Load(path) as List<T>;
     }
+    public static bool TryGet<T>(this T[] values, System.Predicate<T> predicate, out T result)
+    {
+        foreach (var value in values)
+            if (predicate(value))
+            {
+                result = value;
+                return true;
+            }
+        result = default;
+        return false;
+    }
 #if UNITY_EDITOR
     public static void Save(string path, IList cfgs)
     {

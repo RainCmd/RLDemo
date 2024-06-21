@@ -32,7 +32,7 @@ public class Magic
     public real, real CalcCost()// 魔法CD， 魔法耗蓝
         var cd = .0
         var mc = .0
-        if missile.node != null
+        if missile?.node != null
             for var i = 0; i < alters.Count(); i++
                 var alter = MagicNodeInfo& alters.Get(i)
                 cd += alter.node.config.cd

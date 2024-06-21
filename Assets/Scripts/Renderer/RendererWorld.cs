@@ -134,11 +134,8 @@ public class RendererWorld : IDisposable
                     playerDataManager.OnPlayerWandChanged(data.player, data.wand);
                     break;
                 case L2RType.PlayerMagicNodePickListChanged:
-                    if (!magicNodes.ContainsKey(data.node.id))
-                    {
+                    if (data.node.id != 0 && !magicNodes.ContainsKey(data.node.id))
                         L2R_Err("PlayerMagicNodePickListChanged: node id {0} 未找到".Format(data.node.id));
-                        break;
-                    }
                     playerDataManager.OnPickListChanged(data.player, data.node.id, data.addition);
                     break;
                 case L2RType.PlayerWandCDUpdate:
@@ -227,11 +224,8 @@ public class RendererWorld : IDisposable
                     playerDataManager.OnBagListChanged(data.player, data.node.id, data.addition);
                     break;
                 case L2RType.PlayerWandMagicNodeChanged:
-                    if (!magicNodes.ContainsKey(data.node.id))
-                    {
-                        L2R_Err("PlayerBagMagicNodeChanged: node id {0} 未找到".Format(data.node.id));
-                        break;
-                    }
+                    if (data.node.id != 0 && !magicNodes.ContainsKey(data.node.id))
+                        L2R_Err("PlayerWandMagicNodeChanged: node id {0} 未找到".Format(data.node.id));
                     playerDataManager.OnWandNodeChanged(data.player, data.wand, data.slot, data.node.id);
                     break;
             }

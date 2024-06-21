@@ -30,11 +30,12 @@ public class MagicNode
     public MagicNodeEntity nodeEntity
     public MagicNodeConfig config
     public integer number
-    public MagicNode(integer configId, real3 position)
+    public MagicNode(integer configId)
         nodeEntity = null
         config = GetMagicNodeConfig(configId)
         number = config.number
         OnUpdate()
+    public MagicNode(integer configId, real3 position) this(configId)
         OnDrop(position)
     public Remove()
         OnRemvoeMagicNode(GetHandleID())

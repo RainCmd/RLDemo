@@ -43,6 +43,7 @@ public class ActivityWorkbenchOperableNode : MonoBehaviour
     {
         this.mgr = mgr;
         transform.SetParent(parent);
+        transform.localScale = Vector3.one;
         var rt = transform as RectTransform;
         rt.anchorMin = rt.anchorMax = new Vector2(.5f, .5f);
         rt.localPosition = Vector3.zero;
@@ -62,11 +63,14 @@ public class ActivityWorkbenchOperableNode : MonoBehaviour
         gameObject.SetActive(nodeId != 0);
         if (mgr.Renderer.magicNodes.TryGetValue(nodeId, out var node))
         {
-            var cfg = LogicConfig.magicNodes[node.configId];
-            icon.sprite = Config.NodeIconList[(int)cfg.icon];
-            type.sprite = Config.MagicNodeTypeIcons[(int)cfg.type];
-            num.text = node.number.ToString();
-            num.gameObject.SetActive(node.number > 0);
+            if (LogicConfig.magicNodes.TryGet(item => item.id == node.configId, out var cfg))
+            {
+                icon.sprite = Config.NodeIconList[(int)cfg.icon];
+                type.sprite = Config.MagicNodeTypeIcons[(int)cfg.type];
+                num.text = node.number.ToString();
+                num.gameObject.SetActive(node.number > 0);
+            }
+            else Debug.LogError($"节点id:{nodeId} 的configID:{node.configId} 未找到对应的配置");
         }
     }
     private void OnPointDown()
@@ -76,12 +80,11 @@ public class ActivityWorkbenchOperableNode : MonoBehaviour
     }
     private void OnInitializePotentialDrag(PointerEventData data)
     {
-        dragSelf = Time.time - time > .2;
-        if (!dragSelf)
-            scroll.OnInitializePotentialDrag(data);
+        scroll?.OnInitializePotentialDrag(data);
     }
     private void OnBeginDrag(PointerEventData data)
     {
+        dragSelf = Time.time - time > .1;
         data.pointerDrag = gameObject;
         if (dragSelf) BeginDrag.Invoke(data);
         else scroll.OnBeginDrag(data);
