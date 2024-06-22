@@ -95,7 +95,7 @@ namespace Collections
         private integer top = 0
         private integer free = -1
         private integer count = 0
-        public IntDictionary()
+        public StrDictionary()
             for var i, var length = 0, buckets.GetLength(); i < length; i++
                 buckets[i] = -1
         public Set(string key, handle value)

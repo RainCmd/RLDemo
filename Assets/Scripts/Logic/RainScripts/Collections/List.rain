@@ -8,6 +8,7 @@ namespace Collections
         list.Remove(value)
         return list
     public delegate bool Predicate(handle)
+    public delegate ForeachList(handle)
     public class List 
         private handle[] values = null
         private integer count = 0
@@ -76,6 +77,21 @@ namespace Collections
                     RemoveAt(i)
                     return true
             return false
+        public handle RemoveFirst(Predicate match)
+            for var i = 0; i < count; i++
+                if match(values[i])
+                    return RemoveAt(i)
+            return null
+        public integer RemoveAll(Predicate match)
+            var result = 0
+            for var i = 0; i < count; i++
+                if match(values[i])
+                    result++
+                elseif result > 0
+                    values[i - result] = values[i]
+            for var i = result; i > 0; i--
+                values[ --count] = null
+            return result
 
         public handle FastRemove(integer index)
             index = Legitimate(index)
@@ -94,6 +110,10 @@ namespace Collections
                 if match(values[i])
                     return values[i]
             return null
+
+        public Foreach(ForeachList action)
+            for var i = 0; i < count; i++
+                action(values[i])
 
         public List Clone()
             var result = List()

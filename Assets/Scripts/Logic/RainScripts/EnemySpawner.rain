@@ -52,7 +52,7 @@ space OnUnitDead(Unit killer, Unit dead)
         MagicNode(cfg.id, dead.position)
 
 public SpawnEnemy()
-    AnyUnitDeath.Add(UnitDeath & OnUnitDead)
+    AnyUnitDeath.Add(OnUnitDead)
     while
         wait
         if enemyCount < 10

@@ -8,15 +8,32 @@ internal native OnRemoveUnitEntity(integer id)
 internal native OnUnitBuffChanged(integer unitId, integer buffId, bool addition)
 
 public delegate real UnitDamageEvent(Unit source, real damage, Unit target)//返回修正后的伤害值
-public List AnyUnitTakesDamage = List()//<UnitDamageEvent>
-public delegate UnitDeath(Unit killer, Unit dead)
-public List AnyUnitDeath = List()//<UnitDeath>
+public UnitDamageEventList AnyUnitTakesDamage = UnitDamageEventList()
+public class UnitDamageEventList
+    private List list = List()
+    public Add(UnitDamageEvent event)
+        list.Add(event)
+    public Remove(UnitDamageEvent event)
+        list.RemoveFirst(item => UnitDamageEvent & item == event)
+    public real Invoke(Unit source, real damage, Unit target)
+        for var i = 0; i < list.Count(); i++
+            damage = (UnitDamageEvent & list.Get(i))(source, damage, target)
+        return damage
+
+public delegate UnitDeathEvent(Unit killer, Unit dead)
+public UnitDeathEventList AnyUnitDeath = UnitDeathEventList()
+public class UnitDeathEventList
+    private List list = List()
+    public Add(UnitDeathEvent event)
+        list.Add(event)
+    public Remove(UnitDeathEvent event)
+        list.RemoveFirst(item => UnitDeathEvent & item == event)
+    public Invoke(Unit killer, Unit dead)
+        list.Foreach(item => (UnitDeathEvent & item)(killer, dead))
 public DamageUnit(Unit source, real damage, Unit target)
     if target == null || !target.valid
         return
-    for var i, var c = 0, AnyUnitTakesDamage.Count(); i < c; i++
-        var e = UnitDamageEvent& AnyUnitTakesDamage.Get(i)
-        damage = e(source, damage, target)
+    damage = AnyUnitTakesDamage.Invoke(source, damage, target)
     target.Hit(source, damage)
     
 public const string UNIT_ANIM_IDLE = "idle"
@@ -95,9 +112,7 @@ public class Unit GameEntity
         if shp != hp
             OnUpdate()
         if hp == 0
-            for var i, var c = 0, AnyUnitDeath.Count(); i < c; i++
-                var e = UnitDeath & AnyUnitDeath.Get(i)
-                e(source, this)
+            AnyUnitDeath.Invoke(source, this)
             Remove(false)
         return damage
     public Goto(real3 target)
