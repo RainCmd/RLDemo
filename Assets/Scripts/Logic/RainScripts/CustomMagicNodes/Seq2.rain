@@ -1,0 +1,5 @@
+namespace CustomMagicNodes
+    import kernel.Math
+    public class Seq2 AlterMagicNode
+        public real GetDir(real dir, integer index)
+            return dir - PI / 12 + PI / 6 * index

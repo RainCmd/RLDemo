@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Reflection;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class ActivityGameMain : UIActivity
@@ -47,6 +48,7 @@ public class ActivityGameMain : UIActivity
         if (manager.Renderer.playerDataManager.TryGet(manager.Renderer.playerDataManager.localPlayer, out localPlayerData))
         {
             localPlayerData.WandChanged += OnWandChanged;
+            OnWandChanged();
             OnWandClick((int)localPlayerData.wand);
             localPlayerData.WandCDChanged += OnWandCDChanged;
             for (var i = 0; i < localPlayerData.wandCDs.Length; i++) OnWandCDChanged(i);
@@ -62,7 +64,8 @@ public class ActivityGameMain : UIActivity
     {
         if (localPlayerData != null)
         {
-            OnWandClick((int)localPlayerData.wand);
+            for (int i = 0; i < wands.Length; i++)
+                wands[i].sprite = i == localPlayerData.wand ? wandsOn[i] : wandsOff[i];
         }
     }
 
@@ -123,8 +126,7 @@ public class ActivityGameMain : UIActivity
     }
     public void OnWandClick(int index)
     {
-        for (int i = 0; i < wands.Length; i++)
-            wands[i].sprite = i == index ? wandsOn[i] : wandsOff[i];
+        Manager.Room?.UpdateOperator(Operator.SwitchWeapon(index));
     }
     private void OnWandCDChanged(long wand)
     {

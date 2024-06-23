@@ -9,7 +9,7 @@ namespace CustomMagicNodes
         public real GetDir(real dir, integer index)
             return dir + PI * index * 2 / 3
         private OnSelectEntity(GameEntity e)
-            if e != creater && e is Unit u
+            if e != creater && e is Unit u && !u.player.camp.IsAlly(creater.player.camp)
                 selected = u
         private bool TerminalCondition()
             return selected != null
@@ -19,11 +19,12 @@ namespace CustomMagicNodes
             var time = gameTime
             while gameTime - time < 3
                 wait
-                position += velocity * 10
+                position += velocity * 5
                 gameEntity.Move(velocity, position)
                 selected = null
-                worldRoot.SelectRange(position.xy, .5, OnSelectEntity, TerminalCondition)
+                worldRoot.SelectRange(position.xz, .5, OnSelectEntity, TerminalCondition)
                 break selected != null
+            gameEntity.Remove(false)
             OnFinish()
             if selected !=null
                 DamageUnit(creater, 100, selected)

@@ -40,6 +40,16 @@ public const string UNIT_ANIM_IDLE = "idle"
 public const string UNIT_ANIM_MOVE = "move"
 public const string UNIT_ANIM_DEATH = "death"
 public delegate real HitEvent(Unit source, real damage)//返回修正后的伤害值
+public class HitEventList
+    private List list = List()
+    public Add(HitEvent e)
+        list.Add(e)
+    public Remove(HitEvent e)
+        list.RemoveFirst(item => HitEvent & item == e)
+    public real Invoke(Unit source, real damage)
+        for var i = 0; i < list.Count(); i++
+            damage = (HitEvent & list.Get(i))(source, damage)
+        return damage
 public class Unit GameEntity
     public bool valid = true
     public Player player
@@ -53,7 +63,7 @@ public class Unit GameEntity
     private bool autoMoving
     public real3 targetPosition
     public List buffs = List()//<Buff>
-    public List onHitEvent = List()//<HitEvent>
+    public HitEventList onHitEvent = HitEventList()
     private real2 pressure
     public Unit(integer configId, Player player, real3 forward, real3 position)
         var config = GetUnitConfig(configId)
@@ -102,9 +112,7 @@ public class Unit GameEntity
         buffs.Remove(buff)
         buff.Remove()
     public real Hit(Unit source, real damage)//返回真正造成的伤害
-        for var i, var c = 0, onHitEvent.Count(); i < c; i++
-            var e = HitEvent& onHitEvent.Get(i)
-            damage = e(source, damage)
+        damage = onHitEvent.Invoke(source, damage)
         var shp = hp
         hp -= damage
         if hp < 0

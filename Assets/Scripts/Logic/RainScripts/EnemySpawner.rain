@@ -56,5 +56,4 @@ public SpawnEnemy()
     while
         wait
         if enemyCount < 10
-            //start CreateEnemy()
-            var i=120
+            start CreateEnemy()

@@ -1,0 +1,6 @@
+import kernel.Math
+namespace CustomMagicNodes
+    class Mul3 AlterMagicNode
+        public real GetDir(real dir, integer index)
+            var step = PI / 12
+            return dir + step * (index - 1)

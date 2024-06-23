@@ -1,0 +1,8 @@
+import kernel.Math
+namespace CustomMagicNodes
+    class Mul2 AlterMagicNode
+        public real GetDir(real dir, integer index)
+            if index == 0
+                return dir + PI / 6
+            else 
+                return dir - PI / 6

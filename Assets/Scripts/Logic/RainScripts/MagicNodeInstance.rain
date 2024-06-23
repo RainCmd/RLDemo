@@ -6,7 +6,7 @@ import kernel.Math
 public class MagicNodeInstance
     public Unit creater
     public MagicNodeConfig config
-    public real GetDir(real dir, integer index)
+    public real GetDir(real dir, integer index)//dir [-π, π]
         return dir
     public OnEnd()
 
