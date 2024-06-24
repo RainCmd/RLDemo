@@ -25,8 +25,11 @@ namespace Collections
                 values = handle[count > 4 ? count : 4]
             elseif this.count + count > values.GetLength()
                 var nc = this.count
-                while nc < this.count + count
-                    nc += nc >> 1
+                if nc < 2
+                    nc = this.count + count
+                else
+                    while nc < this.count + count
+                        nc += nc >> 1
                 var nvs = handle[nc]
                 for var i = 0; i < this.count; i++
                     nvs[i] = values[i]

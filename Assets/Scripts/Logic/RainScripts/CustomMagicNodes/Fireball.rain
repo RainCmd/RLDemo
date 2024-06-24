@@ -19,7 +19,7 @@ namespace CustomMagicNodes
             var time = gameTime
             while gameTime - time < 3
                 wait
-                position += velocity * 5
+                position += velocity
                 gameEntity.Move(velocity, position)
                 selected = null
                 worldRoot.SelectRange(position.xz, .5, OnSelectEntity, TerminalCondition)
@@ -27,7 +27,7 @@ namespace CustomMagicNodes
             gameEntity.Remove(false)
             OnFinish()
             if selected !=null
-                DamageUnit(creater, 100, selected)
+                DamageUnit(creater, 30, selected)
                 OnHit(selected)
                 TriggerNext()
 

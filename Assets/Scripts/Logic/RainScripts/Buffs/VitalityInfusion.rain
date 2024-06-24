@@ -1,0 +1,13 @@
+namespace CustomBuffs
+    private task VitalityInfusionAction
+    class VitalityInfusionBuff Buff
+        private VitalityInfusionAction action
+        protected OnCreate()
+            action = start Update()
+        protected OnRemove()
+            action?.Abort()
+        private Update()
+            while
+                if owner != null
+                    owner.SetMP(owner.GetMP() + LOGIC_TIMESTEP * 3)
+                wait

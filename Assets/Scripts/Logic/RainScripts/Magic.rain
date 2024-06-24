@@ -13,13 +13,10 @@ public class MagicNodeInfo
         this.index = info.index
         this.node = info.node
 public class Magic 
-    public List alters//<MagicNodeInfo>
+    public List alters = List()//<MagicNodeInfo>
     public MagicNodeInfo missile
-    public List nexts//<Magic>
+    public List nexts = List()//<Magic>
     public Magic()
-        alters = List()
-        missile = null
-        nexts = List()
     public Magic(Magic magic)
         for var i = 0; i < magic.alters.Count(); i++
             alters.Add(MagicNodeInfo(MagicNodeInfo& magic.alters.Get(i)))
@@ -47,12 +44,13 @@ public class Magic
         return cd, mc
     public integer GetNodeCount(MagicNode node)
         var result = 0
-        if missile.node != null
-            if node.config.nodeType == MagicNodeType.Alter
-                for var i = 0; i < alters.Count(); i++
-                    if (MagicNodeInfo& alters.Get(i)).node == node
-            elseif missile.node == node
-                result++
+        if node.config.nodeType == MagicNodeType.Alter
+            for var i = 0; i < alters.Count(); i++
+                if(MagicNodeInfo & alters.Get(i)).node == node
+                    result++
+                    break
+        elseif missile?.node == node
+            result++
         for var i = 0; i < nexts.Count(); i++
             var magic = Magic& nexts.Get(i)
             result += magic.GetNodeCount(node)

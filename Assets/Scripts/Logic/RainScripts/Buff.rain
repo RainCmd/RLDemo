@@ -4,7 +4,7 @@ import Utils
 
 internal native OnUpdateBuff(integer id, integer config, integer number, real startTime, real endTime)
 internal native OnRemoveBuff(integer id)
-
+private task BuffDelayRemove
 public class Buff
     public BuffConfig config
     public Unit owner
@@ -12,8 +12,9 @@ public class Buff
     public integer number
     public real startTime
     public real endTime
-    public OnCreate()
-    public OnRemove()
+    private BuffDelayRemove delay
+    protected OnCreate()
+    protected OnRemove()
     public OnUpdate(Unit)
         if config.accumulation
             number++
@@ -23,10 +24,19 @@ public class Buff
         this->Update()
     public Update()
         OnUpdateBuff(GetHandleID(), config.id, number, startTime, endTime)
-
+    private DelayRemove()
+        while gameTime < endTime && delay != null
+            wait
+        if delay != null
+            this->Remove()
+    public Create()
+        if config.duration > 0
+            delay = start DelayRemove()
+        OnCreate()
     public Remove()
         OnRemove()
         OnRemoveBuff(GetHandleID())
+        delay = null
 
 space StrDictionary buffTypeCache = StrDictionary()
 public Buff CreateBuff(BuffConfig cfg, Unit source, Unit target)
@@ -41,6 +51,6 @@ public Buff CreateBuff(BuffConfig cfg, Unit source, Unit target)
     result.number = 1
     result.startTime = gameTime
     result.endTime = gameTime + cfg.duration
-    result.OnCreate()
+    result->Create()
     result->Update()
     return result

@@ -50,21 +50,23 @@ public class HitEventList
         for var i = 0; i < list.Count(); i++
             damage = (HitEvent & list.Get(i))(source, damage)
         return damage
+        
 public class Unit GameEntity
     public bool valid = true
     public Player player
     public integer configId
     public UnitType unitType
-    public real hp
-    public real maxHP
-    public real mp
-    public real maxMP
+    private real hp
+    private real maxHP
+    private real mp
+    private real maxMP
     public real moveSpeed
     private bool autoMoving
     public real3 targetPosition
     public List buffs = List()//<Buff>
     public HitEventList onHitEvent = HitEventList()
     private real2 pressure
+    private bool dirty = false
     public Unit(integer configId, Player player, real3 forward, real3 position)
         var config = GetUnitConfig(configId)
         base.Init(config.entityConfigId, "stand", forward, position)
@@ -81,7 +83,9 @@ public class Unit GameEntity
         if !valid
             return
         for var i = 0; i < buffs.Count(); i++
-            OnUnitBuffChanged(GetHandleID(), buffs.Get(i).GetHandleID(), false)
+            var buff = Buff & buffs.Get(i)
+            OnUnitBuffChanged(GetHandleID(), buff.GetHandleID(), false)
+            buff.Remove()
         OnRemoveUnitEntity(GetHandleID())
         ShowAnim(UNIT_ANIM_DEATH)
         base.Remove(immediately)
@@ -90,6 +94,9 @@ public class Unit GameEntity
     private MainLoop()
         while valid
             UpdateAutoMove()
+            if dirty
+                this->OnUpdate()
+                dirty = false
             wait
 
     public AddBuff(integer buffId, Unit source)
@@ -113,12 +120,7 @@ public class Unit GameEntity
         buff.Remove()
     public real Hit(Unit source, real damage)//返回真正造成的伤害
         damage = onHitEvent.Invoke(source, damage)
-        var shp = hp
-        hp -= damage
-        if hp < 0
-            hp = 0
-        if shp != hp
-            OnUpdate()
+        SetHP(hp - damage)
         if hp == 0
             AnyUnitDeath.Invoke(source, this)
             Remove(false)
@@ -167,5 +169,35 @@ public class Unit GameEntity
             autoMoving = false
         else
             Move(forward, position + forward * step)
-    public OnUpdate()
+    public real, real, real, real GetStates()//hp,maxHP,mp,maxMP
+        return hp, maxHP, mp, maxMP
+    public real GetHP()
+        return hp
+    public real GetMaxHP()
+        return maxHP
+    public real GetMP()
+        return mp
+    public real GetMaxMP()
+        return maxMP
+    public SetHP(real hp)
+        hp = Clamp(hp, 0, maxHP)
+        if hp != this.hp
+            dirty = true
+        this.hp = hp
+    public SetHP(real hp, real maxHP)
+        if maxHP != this.maxHP
+            dirty = true
+        this.maxHP = maxHP
+        SetHP(hp)
+    public SetMP(real mp)
+        mp = Clamp(mp, 0, maxHP)
+        if mp != this.mp
+            dirty = true
+        this.mp = mp
+    public SetMP(real mp, real maxMP)
+        if maxMP < this.maxMP
+            dirty = true
+        this.maxMP = maxMP
+        SetMP(mp)
+    private OnUpdate()
         OnUpdateUnitEntity(GetHandleID(), player.id, unitType, hp, maxHP, mp, maxMP)

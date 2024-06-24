@@ -43,7 +43,7 @@ namespace InitGame
     space OnLoadEntity(GameEntity e)
         OnLoadGameEntity(e.GetHandleID(), e.resource, e.anim, e.forward, e.position)
         if e is Unit u
-            OnLoadGameUnit(u.GetHandleID(), u.player.id, u.unitType, u.hp, u.maxHP, u.mp, u.maxMP)
+            OnLoadGameUnit(u.GetHandleID(), u.player.id, u.unitType, u.GetStates())
             for var i = 0; i < u.buffs.Count(); i++
                 var b = Buff& u.buffs.Get(i)
                 OnLoadBuff(u.GetHandleID(), b.GetHandleID(), b.config.id, b.number, b.startTime, b.endTime)

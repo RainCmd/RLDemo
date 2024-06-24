@@ -44,6 +44,7 @@ public class Player
         
     public EnableCtrl()
         hero = Unit('U_hero', this, FORWARD, GetRandomWorldPosition()) 
+        hero.AddBuff('Infusion', null)
         wands[0].magicNodes[0] = MagicNode('fireball')
         start PlayerMainLoop()
     private PlayerMainLoop()
@@ -110,7 +111,7 @@ public class Player
             if magic.nexts.Count() == 0
                 return//无效的法术
             var cd, var mc = magic.CalcCost()
-            if hero.mp < mc
+            if hero.GetMP() < mc
                 return//魔法不足
             var nodes = wands[currentWand].magicNodes
             for var i = 0; i < nodes.GetLength(); i++
@@ -131,8 +132,7 @@ public class Player
             wands[currentWand].cdStartTime = gameTime
             wands[currentWand].cdEndTime = gameTime + cd
             OnPlayerWandCDUpdate(id, currentWand, gameTime, gameTime + cd)
-            hero.mp -= mc
-            hero.OnUpdate()
+            hero.SetMP(hero.GetMP() - mc)
     private MoveLoop()
         if rockDis > .1
             hero.RockMove(rockDir, rockDis)

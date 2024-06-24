@@ -1,10 +1,9 @@
 namespace CustomBuffs
-    import Collections
     //伤害加深，拥有buff的单位受到伤害翻倍
     space class AmplifyDamageBuff Buff
-        public OnCreate()
+        protected OnCreate()
             owner.onHitEvent.Add(OnOwnerDmg)
-        public OnRemove()
+        protected OnRemove()
             owner.onHitEvent.Remove(OnOwnerDmg)
         private real OnOwnerDmg(Unit, real dmg)
             return dmg * 2

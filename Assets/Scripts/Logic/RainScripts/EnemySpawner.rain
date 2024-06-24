@@ -47,13 +47,14 @@ space CreateEnemy()
 
 space OnUnitDead(Unit killer, Unit dead)
     if dead.configId == 'U_enemy'
-        var cfgs = GameConfig.entityConfigs
+        var cfgs = GameConfig.magicNodeConfigs
         var cfg = cfgs[GetRandomInt() % cfgs.GetLength()]
         MagicNode(cfg.id, dead.position)
+        enemyCount--
 
 public SpawnEnemy()
     AnyUnitDeath.Add(OnUnitDead)
     while
         wait
-        if enemyCount < 10
+        if enemyCount < 3
             start CreateEnemy()
