@@ -5,6 +5,8 @@ using UnityEngine.EventSystems;
 
 public class ActivityWorkbench : UIActivity
 {
+    public ActivityWorkbenchWandDetailPanel wandDetailPanel;
+    public ActivityWorkbenchNodeDetailPanel nodeDetailPanel;
     public GameObject operableNodePrefab;
     public RectTransform bagViewport;
     public RectTransform bagContent;
@@ -141,12 +143,23 @@ public class ActivityWorkbench : UIActivity
             draggedNode = null;
         }
     }
+    private void OnClickNode(PointerEventData data)
+    {
+        var src = data.pointerDrag?.GetComponent<ActivityWorkbenchOperableNode>();
+        if (src && gameMgr.Renderer.magicNodes.TryGetValue(src.nodeId, out var entity))
+        {
+            nodeDetailPanel.Show(entity);
+        }
+    }
+
     private void RegNodeDragEvent(ActivityWorkbenchOperableNode node)
     {
         node.BeginDrag.AddListener(OnBeginDragNode);
         node.Drag.AddListener(OnDragNode);
         node.EndDrag.AddListener(OnEndDragNode);
+        node.Click.AddListener(OnClickNode);
     }
+
     public ActivityWorkbenchOperableNode GetNode(Transform parent)
     {
         if (nodePool.Count > 0)

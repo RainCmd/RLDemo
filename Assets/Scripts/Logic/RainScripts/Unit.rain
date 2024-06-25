@@ -190,12 +190,12 @@ public class Unit GameEntity
         this.maxHP = maxHP
         SetHP(hp)
     public SetMP(real mp)
-        mp = Clamp(mp, 0, maxHP)
+        mp = Clamp(mp, 0, maxMP)
         if mp != this.mp
             dirty = true
         this.mp = mp
     public SetMP(real mp, real maxMP)
-        if maxMP < this.maxMP
+        if maxMP != this.maxMP
             dirty = true
         this.maxMP = maxMP
         SetMP(mp)

@@ -9,5 +9,5 @@ namespace CustomBuffs
         private Update()
             while
                 if owner != null
-                    owner.SetMP(owner.GetMP() + LOGIC_TIMESTEP * 3)
+                    owner.SetMP(owner.GetMP() + LOGIC_TIMESTEP * 30)
                 wait

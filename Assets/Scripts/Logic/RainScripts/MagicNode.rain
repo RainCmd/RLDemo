@@ -22,7 +22,7 @@ public class MagicNodeEntity GameEntity
         delayRemove = null
         base.Remove(immediately)
     private DelayRemove()
-        Wait(1000)
+        Wait(20)
         delayRemove = null
         node?->Remove()
 

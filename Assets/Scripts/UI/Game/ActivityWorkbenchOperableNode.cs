@@ -7,6 +7,8 @@ public class ActivityWorkbenchOperableNode : MonoBehaviour
 {
     [System.Serializable]
     public class NodeDragEvent : UnityEvent<PointerEventData> { }
+    [System.Serializable]
+    public class NodeClickEvent : UnityEvent<PointerEventData> { }
     private GameMgr mgr;
     public long nodeId;
     public Image icon;
@@ -33,6 +35,7 @@ public class ActivityWorkbenchOperableNode : MonoBehaviour
     public NodeDragEvent BeginDrag = new NodeDragEvent();
     public NodeDragEvent Drag = new NodeDragEvent();
     public NodeDragEvent EndDrag = new NodeDragEvent();
+    public NodeClickEvent Click = new NodeClickEvent();
     private void RegTrg(EventTriggerType type, UnityAction<BaseEventData> cb)
     {
         var entity = new EventTrigger.Entry() { eventID = type };
@@ -55,6 +58,7 @@ public class ActivityWorkbenchOperableNode : MonoBehaviour
             RegTrg(EventTriggerType.BeginDrag, data => OnBeginDrag(data as PointerEventData));
             RegTrg(EventTriggerType.Drag, data => OnDrag(data as PointerEventData));
             RegTrg(EventTriggerType.EndDrag, data => OnEndDrag(data as PointerEventData));
+            RegTrg(EventTriggerType.PointerClick, data => Click.Invoke(data as PointerEventData));
         }
     }
     public void SetNode(long nodeId)
@@ -106,6 +110,7 @@ public class ActivityWorkbenchOperableNode : MonoBehaviour
         BeginDrag.RemoveAllListeners();
         Drag.RemoveAllListeners();
         EndDrag.RemoveAllListeners();
+        Click.RemoveAllListeners();
         trigger.triggers.Clear();
         scroll = null;
     }

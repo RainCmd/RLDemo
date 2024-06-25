@@ -99,6 +99,7 @@ public class Player
             if idx < 0
                 var node = MagicNode& pickList.RemoveAt(i)
                 OnPlayerMagicNodePickListChanged(id, node.GetHandleID(), false)
+                i--
             else
                 selectPickList.FastRemove(idx)
         for var i = 0; i < selectPickList.Count(); i++
