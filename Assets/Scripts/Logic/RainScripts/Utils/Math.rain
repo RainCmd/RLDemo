@@ -4,7 +4,7 @@ namespace Utils
         var s, var c = SinCos(dir)
         return real3(c, 0, s)
     public real ForwardToDir(real3 forward)
-        return Atan2(forward.y, forward.x)
+        return Atan2(forward.z, forward.x)
     public real2 Rotation(real2 v, real a)
         var s, var c = SinCos(a)
         return real2(v.x * c - v.y * s, v.x * s + v.y * c)

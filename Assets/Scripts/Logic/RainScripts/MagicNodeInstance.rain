@@ -6,43 +6,50 @@ import kernel.Math
 public class MagicNodeInstance
     public Unit creater
     public MagicNodeConfig config
+    //连续触发和多重触发时计算每次触发投射物发射方向
+    //dir:当前朝向
+    //index:触发索引，即地几个投射物，从0开始计算
+    //返回修正后投射物发射方向，这个方向可以被后续法术继续修正
     public real GetDir(real dir, integer index)//dir [-π, π]
         return dir
-    public OnEnd()
 
 public class MissileMagicNode MagicNodeInstance
     private Magic magic
     public List alters = List()//<AlterMagicNode>
     public real3 position
     public real3 velocity
-    public OnStart(Magic magic, real dir)
+    public OnStart(Magic magic, real3 position, real dir)
         this.magic = magic
         for var i = 0; i < magic.alters.Count(); i++
             var info = MagicNodeInfo& magic.alters.Get(i)
             var alter = CreateAlterMagicNode(creater, info.node.config)
             dir = alter.GetDir(dir, info.index)
             alters.Add(alter)
-        position = creater.position
+        this.position = position
         velocity = DirToForward(dir)
         for var i = 0; i < alters.Count(); i++
             var alter = AlterMagicNode& alters.Get(i)
             start alter.OnStart(this)
         start OnStart()
+    //需要子类实现的函数，当所有参数初始化完毕并且修正法术也全部初始化完毕后调用
     public OnStart()
+    //通知所有修正法术命中目标
     public OnHit(Unit target)
         for var i = 0; i < alters.Count(); i++
             var alter = AlterMagicNode& alters.Get(i)
             alter.OnHit(target)
+    //通知所有修正法术本次法术完成
     public OnFinish()
         for var i = 0; i < alters.Count(); i++
             var alter = AlterMagicNode& alters.Get(i)
             alter.OnFinish()
+    //触发后续法术
     public TriggerNext()
         var dir = ForwardToDir(velocity)
         for var i = 0; i < magic.nexts.Count(); i++
             var m = Magic& magic.nexts.Get(i)
             var missile = CreateMissileMagicNode(creater, m.missile.node.config)
-            missile.OnStart(m, GetDir(dir, m.missile.index))
+            missile->OnStart(m, position, GetDir(dir, m.missile.index))
 
 public class AlterMagicNode MagicNodeInstance
     public OnStart(MissileMagicNode)
@@ -55,7 +62,13 @@ internal handle GetNodeInstance(Unit creater, MagicNodeConfig config, type t)
     if !f
         r = FindType(config.logic, t)
         magicNodeTypeCache.Set(config.logic, r)
-    var node = MagicNodeInstance& CreateInstance(type& r)
+    var t = type& r
+    var h = CreateInstance(t)
+    if !(h is MagicNodeInstance node)
+        Debug($"h is null?:{h == null}")
+        if h != null
+            Debug($"h.type = {h.GetType().GetName()}")
+    //var node = MagicNodeInstance& CreateInstance(type& r)
     node.creater = creater
     node.config = config
     return node

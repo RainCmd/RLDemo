@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 68afd09774e046541ba04e5d50f9abaf
+guid: 2e90fb788f49d064f9469a841576410c
 ModelImporter:
   serializedVersion: 23
   fileIDToRecycleName:
@@ -9,35 +9,35 @@ ModelImporter:
     100006: ArmR1
     100008: ArmR2
     100010: ArmR3
-    100012: //RootNode
-    100014: LegL1
-    100016: LegL2
-    100018: LegL3
-    100020: LegR1
-    100022: LegR2
-    100024: LegR3
-    100026: Neck1
-    100028: Rig1
-    100030: Spine1
-    100032: Spine2
+    100012: LegL1
+    100014: LegL2
+    100016: LegL3
+    100018: LegR1
+    100020: LegR2
+    100022: LegR3
+    100024: Neck1
+    100026: Rig1
+    100028: Spine1
+    100030: Spine2
+    100032: //RootNode
     400000: ArmL1
     400002: ArmL2
     400004: ArmL3
     400006: ArmR1
     400008: ArmR2
     400010: ArmR3
-    400012: //RootNode
-    400014: LegL1
-    400016: LegL2
-    400018: LegL3
-    400020: LegR1
-    400022: LegR2
-    400024: LegR3
-    400026: Neck1
-    400028: Rig1
-    400030: Spine1
-    400032: Spine2
-    7400000: fastRun
+    400012: LegL1
+    400014: LegL2
+    400016: LegL3
+    400018: LegR1
+    400020: LegR2
+    400022: LegR3
+    400024: Neck1
+    400026: Rig1
+    400028: Spine1
+    400030: Spine2
+    400032: //RootNode
+    7400000: dead
     9500000: //RootNode
   externalObjects: {}
   materials:
@@ -59,7 +59,7 @@ ModelImporter:
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
     importConstraints: 0
-    animationCompression: 3
+    animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
@@ -68,17 +68,17 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: fastRun
+      name: dead
       takeName: mixamo.com
       firstFrame: 0
-      lastFrame: 16
+      lastFrame: 100
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -144,7 +144,7 @@ ModelImporter:
     feetSpacing: 0
     rootMotionBoneName: 
     hasTranslationDoF: 0
-    hasExtraRoot: 1
+    hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   animationType: 2

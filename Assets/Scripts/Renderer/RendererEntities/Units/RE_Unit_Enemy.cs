@@ -17,4 +17,9 @@ public class RE_Unit_Enemy : RendererEntity
                 break;
         }
     }
+    public override void Kill()
+    {
+        animator.SetBool("dead", true);
+        UIManager.Do(() => manager.Recycle(this), 3);
+    }
 }

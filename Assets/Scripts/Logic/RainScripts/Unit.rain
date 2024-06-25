@@ -61,6 +61,7 @@ public class Unit GameEntity
     private real mp
     private real maxMP
     public real moveSpeed
+    public real moveSpeedRatio = 1
     private bool autoMoving
     public real3 targetPosition
     public List buffs = List()//<Buff>
@@ -139,7 +140,7 @@ public class Unit GameEntity
         autoMoving = false
         ShowAnim(UNIT_ANIM_MOVE)
         var forward = DirToForward(dir)
-        var delta = moveSpeed * LOGIC_TIMESTEP * dis * forward
+        var delta = moveSpeed * moveSpeedRatio * LOGIC_TIMESTEP * dis * forward
         Move(forward, position + delta)
     public StopMove()
         if !valid
@@ -162,7 +163,7 @@ public class Unit GameEntity
         var target = position + forward
         var sqrDis = forward.SqrMagnitude()
         forward = forward.Normalized()
-        var step = moveSpeed * LOGIC_TIMESTEP
+        var step = moveSpeed * moveSpeedRatio * LOGIC_TIMESTEP
         if sqrDis < step * step
             Move(forward, target)
             ShowAnim(UNIT_ANIM_IDLE)

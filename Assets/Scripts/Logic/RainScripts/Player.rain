@@ -129,7 +129,7 @@ public class Player
                             node.OnUpdate()
             for var i = 0; i < magic.nexts.Count(); i++
                 var m = Magic& magic.nexts.Get(i)
-                CreateMissileMagicNode(hero, m.missile.node.config).OnStart(m, fireDir)
+                CreateMissileMagicNode(hero, m.missile.node.config)->OnStart(m, hero.position, fireDir)
             wands[currentWand].cdStartTime = gameTime
             wands[currentWand].cdEndTime = gameTime + cd
             OnPlayerWandCDUpdate(id, currentWand, gameTime, gameTime + cd)

@@ -28,10 +28,11 @@ public class Buff
         while gameTime < endTime && delay != null
             wait
         if delay != null
-            this->Remove()
+            owner->Remove(this)
     public Create()
         if config.duration > 0
-            delay = start DelayRemove()
+            delay = new DelayRemove()
+            delay.Start(false, false)
         OnCreate()
     public Remove()
         OnRemove()

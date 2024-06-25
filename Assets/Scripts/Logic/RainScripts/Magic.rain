@@ -82,8 +82,7 @@ space integer CreateMagic(MagicNode[] nodes, integer sidx, Magic magic, Magic pa
                         e = end
                     elseif end < 0
                         break
-                if cn.config.multiple + cn.config.sequence > 0
-                    return -1
+                return e
 
             elseif cn.config.nodeType == MagicNodeType.Missile
                 magic.missile = MagicNodeInfo(0, cn)

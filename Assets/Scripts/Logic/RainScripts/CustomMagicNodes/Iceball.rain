@@ -1,9 +1,5 @@
 namespace CustomMagicNodes
-    import Utils
-    import kernel.Math
-    //火球命中别人后造成100点伤害
-    //命中才会触发后续法术
-    public class Fireball MissileMagicNode
+    class Iceball MissileMagicNode
         private GameEntity gameEntity
         private Unit selected
         private OnSelectEntity(GameEntity e)
@@ -13,19 +9,19 @@ namespace CustomMagicNodes
             return selected != null
         public OnStart()
             gameEntity = GameEntity()
-            gameEntity.Init('EB_fire', "stand", velocity, position)
+            gameEntity.Init('EB_ice',"stand",velocity,position)
             var time = gameTime
-            while gameTime - time < 1
+            while gameTime - time < 2
                 wait
-                position += velocity * LOGIC_TIMESTEP * 9
+                position += velocity * LOGIC_TIMESTEP * 5
                 gameEntity.Move(velocity, position)
                 selected = null
                 worldRoot.SelectRange(position.xz, .5, OnSelectEntity, TerminalCondition)
                 break selected != null
             gameEntity.Remove(false)
             OnFinish()
-            if selected !=null
-                DamageUnit(creater, 30, selected)
+            if selected != null
+                DamageUnit(creater, 10, selected)
                 OnHit(selected)
+                selected.AddBuff('frost', creater)
                 TriggerNext()
-

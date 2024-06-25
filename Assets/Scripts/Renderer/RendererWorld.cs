@@ -134,8 +134,8 @@ public class RendererWorld : IDisposable
                     playerDataManager.OnPlayerWandChanged(data.player, data.wand);
                     break;
                 case L2RType.PlayerMagicNodePickListChanged:
-                    if (data.node.id != 0 && !magicNodes.ContainsKey(data.node.id))
-                        L2R_Err("PlayerMagicNodePickListChanged: node id {0} 未找到".Format(data.node.id));
+                    //if (data.node.id != 0 && !magicNodes.ContainsKey(data.node.id))
+                    //    L2R_Err("PlayerMagicNodePickListChanged: node id {0} 未找到".Format(data.node.id));
                     playerDataManager.OnPickListChanged(data.player, data.node.id, data.addition);
                     break;
                 case L2RType.PlayerWandCDUpdate:

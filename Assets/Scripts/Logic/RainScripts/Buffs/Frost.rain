@@ -1,0 +1,6 @@
+namespace CustomBuffs
+    class ForstBuff Buff
+        protected OnCreate()
+            owner.moveSpeedRatio -= .3
+        protected OnRemove()
+            owner.moveSpeedRatio += .3

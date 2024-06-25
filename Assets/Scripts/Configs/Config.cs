@@ -39,7 +39,7 @@ public static class Config
         }
     }
     public const int HallPort = 14567;
-    public const int LFPS = 10;//逻辑帧帧率
+    public const int LFPS = 30;//逻辑帧帧率
     public const int WandSlotSize = 16;//修改的时候需要同步修改 Scripts\Logic\RainScripts\ConstantValues.rain 中的 WAND_SLOT_SIZE
     private static Icons palyerHeadIcons = new Icons(ConfigIcons.HeadIconsPath);
     public static IReadOnlyList<Sprite> PlayerHeadIconList
