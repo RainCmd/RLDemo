@@ -159,6 +159,7 @@ public class LogicWorld : IDisposable
     private Kernel kernel;
     private Function[] operFuncs;
     public event Action<L2RData> OnRendererMsg;
+    public Real LogicTime { private set; get; }
 
     public event Action<LogicFloatTextMsg> OnFloatTextMsg;
     public LogicWorld(long[] ctrls, long seed, LoadingProgress loading)
@@ -274,6 +275,12 @@ public class LogicWorld : IDisposable
     private ConfigBuff Config_GetBuff(long index)
     {
         return LogicConfig.buffs[index];
+    }
+
+    [RainMethod("UpdateLogicTime")]
+    private void UpdateLogicTime(Real logicTime)
+    {
+        LogicTime = logicTime;
     }
 
     [RainMethod("OnUpdateEntity")]

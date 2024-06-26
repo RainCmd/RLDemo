@@ -165,10 +165,12 @@ public real3 GetRandomWorldPosition()
     return real3(GetRandomRange( -WORLD_SIZE, WORLD_SIZE), 0, GetRandomRange( -WORLD_SIZE, WORLD_SIZE)) / 100
             
 public real gameTime = 0
+private native UpdateLogicTime(real time)
 public StartWorld()
     while
         wait
         gameTime += LOGIC_TIMESTEP
+        UpdateLogicTime(gameTime)
         DebugWorld()
 
 public Wait(real second)

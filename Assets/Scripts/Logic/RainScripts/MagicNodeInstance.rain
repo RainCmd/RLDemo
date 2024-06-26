@@ -62,13 +62,7 @@ internal handle GetNodeInstance(Unit creater, MagicNodeConfig config, type t)
     if !f
         r = FindType(config.logic, t)
         magicNodeTypeCache.Set(config.logic, r)
-    var t = type& r
-    var h = CreateInstance(t)
-    if !(h is MagicNodeInstance node)
-        Debug($"h is null?:{h == null}")
-        if h != null
-            Debug($"h.type = {h.GetType().GetName()}")
-    //var node = MagicNodeInstance& CreateInstance(type& r)
+    var node = MagicNodeInstance& CreateInstance(type& r)
     node.creater = creater
     node.config = config
     return node

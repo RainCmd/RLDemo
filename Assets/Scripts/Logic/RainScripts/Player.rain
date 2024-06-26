@@ -110,9 +110,11 @@ public class Player
         if fire && wands[currentWand].cdEndTime < gameTime
             var magic = wands[currentWand].CreateMagic()
             if magic.nexts.Count() == 0
+                ShowFloatText(hero.position, real3(1, 0, 0), "无效的法术")
                 return//无效的法术
             var cd, var mc = magic.CalcCost()
             if hero.GetMP() < mc
+                ShowFloatText(hero.position, real3(1, 0, 0), $"魔法不足，需要{mc}点魔法")
                 return//魔法不足
             var nodes = wands[currentWand].magicNodes
             for var i = 0; i < nodes.GetLength(); i++

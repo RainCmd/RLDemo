@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class ActivityGameMain : UIActivity
@@ -8,8 +7,6 @@ public class ActivityGameMain : UIActivity
     public GameObject heroInfoPanel;
     public Text lifeText;
     public Text manaText;
-    public Text atkCDText;
-    public Text costText;
     public ActivityGameMainBuff buffPanel;
     public ActivityGameMainRocker moveRocker;
     public ActivityGameMainRocker atkRocker;
@@ -18,6 +15,8 @@ public class ActivityGameMain : UIActivity
     public Image[] wands;
     public Sprite[] wandsOff;
     public Sprite[] wandsOn;
+    public Image[] wandCDs;
+    private LogicTimeSpan[] wandTimes = new LogicTimeSpan[3];
     public GameMgr Manager { get; private set; }
     private PlayerData localPlayerData;
     private GameUnit localHero;
@@ -131,10 +130,7 @@ public class ActivityGameMain : UIActivity
     private void OnWandCDChanged(long wand)
     {
         if (localPlayerData != null)
-        {
-            var cd = localPlayerData.wandCDs[wand];
-
-        }
+            wandTimes[wand] = localPlayerData.wandCDs[wand];
     }
     public void OnBuildClick()
     {
@@ -153,5 +149,21 @@ public class ActivityGameMain : UIActivity
     private void Update()
     {
         if (exitProgress.fillAmount > 0) exitProgress.fillAmount -= Time.deltaTime;
+        var curr = Manager.Logic?.LogicTime;
+        for (int i = 0; i < 3; i++)
+        {
+            var img = wandCDs[i];
+            var cd = wandTimes[i];
+            if (cd.end > curr)
+            {
+                img.gameObject.SetActive(true);
+                if (cd.start > curr) img.fillAmount = 1;
+                else img.fillAmount = 1 - (float)((curr - cd.start) / (cd.end - cd.start));
+            }
+            else
+            {
+                img.gameObject.SetActive(false);
+            }
+        }
     }
 }
