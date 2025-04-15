@@ -4,13 +4,13 @@ namespace Utils
     
     space type FindType(Space s, string name, type parent)
         var ts = s.GetTypes()
-        for var i = 0; i < ts.GetCount(); i++
-            var t = ts.GetElement(i)
+        for var i = 0; i < ts.GetLength(); i++
+            var t = ts[i]
             if t.GetName() == name && t.IsAssignable(parent)
                 return t 
         var ss = s.GetChildren()
-        for var i = 0; i < ss.GetCount(); i++
-            var t = FindType(ss.GetElement(i), name, parent)
+        for var i = 0; i < ss.GetLength(); i++
+            var t = FindType(ss[i], name, parent)
             if t != <handle>
                 return t
         return <handle>

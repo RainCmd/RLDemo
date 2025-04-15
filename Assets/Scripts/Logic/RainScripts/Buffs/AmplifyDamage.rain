@@ -1,6 +1,6 @@
 namespace CustomBuffs
     //伤害加深，拥有buff的单位受到伤害翻倍
-    space class AmplifyDamageBuff Buff
+    public class AmplifyDamageBuff Buff
         protected OnCreate()
             owner.onHitEvent.Add(OnOwnerDmg)
         protected OnRemove()

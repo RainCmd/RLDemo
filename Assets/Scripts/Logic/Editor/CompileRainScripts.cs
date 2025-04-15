@@ -134,7 +134,7 @@ public class CompileRainScripts
                         using (var msg = product.GetErrorMessage((RainErrorLevel)lvl, i))
                         {
                             if (lvl == 0) LogErrMsg(files, msg, Debug.LogError, "ff0000");
-                            else if (lvl <= (int)RainErrorLevel.WarringLevel4) LogErrMsg(files, msg, Debug.LogWarning, "ffcc00");
+                            else if (lvl <= (int)RainErrorLevel.WarningLevel4) LogErrMsg(files, msg, Debug.LogWarning, "ffcc00");
                             else LogErrMsg(files, msg, Debug.Log, "777777");
                         }
                 compileState = "输出编译信息完成";

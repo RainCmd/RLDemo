@@ -175,4 +175,3 @@ public StartWorld()
 
 public Wait(real second)
     wait integer& (second / LOGIC_TIMESTEP)
-
